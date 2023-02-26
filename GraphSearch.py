@@ -29,6 +29,5 @@ def bfs_search(start_state):
             if not child.inList(frontier) and not child.inList(expandedNodes):
                 frontier.append(child)
                 path[child] = path[node] + [child]
-        print(len(frontier))
     # If we haven't found the goal state, return None
     return None

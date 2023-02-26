@@ -14,6 +14,7 @@ import random
 import os 
 from termcolor import colored
 import copy
+import time
 
 os.system("clear") 
 
@@ -168,10 +169,16 @@ for s in CurrentState.childs():
 	for ss in s.childs():
 		ss.display()
 		print(ss.AI_Pos)
+
 Solution = bfs_search(CurrentState)
 
+def animate_states(states):
+    for state in states:
+        print("\033c", end="")
+        state.display()
+        time.sleep(0.2)
+	
 if Solution is not None:
 	print("SOLUTION FOUND WITH THE FOLLOWING STEPS:")
-	for t in Solution:
-		t.display()
+	animate_states(Solution)
 else: print("NO SOLUTION FOUND")
