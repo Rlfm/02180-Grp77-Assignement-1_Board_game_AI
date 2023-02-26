@@ -18,6 +18,14 @@ class State:
         for action in actions(self):
             states.append(results(self,action))
         return states
+    def equals(self,state):
+         if state.AI_Pos == self.AI_Pos and state.Human_Pos == self.Human_Pos:
+            return True
+    def inList(self,statesList):
+        for s in statesList:
+              if s.equals(self):
+                   return True
+        return False
     
     def display(self):
         Board = [[] for _ in range(self.size[0])]

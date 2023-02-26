@@ -170,5 +170,8 @@ for s in CurrentState.childs():
 		print(ss.AI_Pos)
 Solution = bfs_search(CurrentState)
 
-for t in Solution:
-	t.display()
+if Solution is not None:
+	print("SOLUTION FOUND WITH THE FOLLOWING STEPS:")
+	for t in Solution:
+		t.display()
+else: print("NO SOLUTION FOUND")

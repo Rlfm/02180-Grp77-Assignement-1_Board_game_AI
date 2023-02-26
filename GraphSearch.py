@@ -26,7 +26,7 @@ def bfs_search(start_state):
         # Add child nodes to the queue if they haven't been visited
         
         for child in node.childs():
-            if child not in frontier and child not in expandedNodes:
+            if not child.inList(frontier) and not child.inList(expandedNodes):
                 frontier.append(child)
                 path[child] = path[node] + [child]
         print(len(frontier))
