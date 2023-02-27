@@ -21,7 +21,7 @@ def bfs_search(start_state):
         
         # Check if we've found the goal state
         if node.isGoal():
-            return path[node]
+            return  (path[node],expandedNodes)
         
         # Add child nodes to the queue if they haven't been visited
         
@@ -30,7 +30,7 @@ def bfs_search(start_state):
                 frontier.append(child)
                 path[child] = path[node] + [child]
     # If we haven't found the goal state, return None
-    return None
+    return (None,expandedNodes)
 
 #TODO: Finish the manhattan heuristic calculation
 def ManhattanHeuristic(state):

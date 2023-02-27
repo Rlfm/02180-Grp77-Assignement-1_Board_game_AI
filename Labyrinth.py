@@ -169,12 +169,14 @@ def animate_states(states):
     for state in states:
         print("\033c", end="")
         state.display()
-        time.sleep(0.2)
+        time.sleep(1)
 	
-if Solution is not None:
+if Solution[0] is not None:
 	print("SOLUTION FOUND WITH THE FOLLOWING STEPS:")
-	animate_states(Solution)
-else: print("NO SOLUTION FOUND")
+	animate_states(Solution[0])
+else: 
+	print("NO SOLUTION FOUND")
+	animate_states(Solution[1])
 
 
 #TILE SHIFT TESTING
