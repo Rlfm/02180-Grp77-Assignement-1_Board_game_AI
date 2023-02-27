@@ -8,7 +8,7 @@ def progress_bar(progress,total):
 	if percent >= 100:
 		print("\r" + 110*" ",end="\r")
 
-from LabyrinthClasses import State, Action, Tile,actions
+from LabyrinthClasses import State, MoveAction, Tile,actions,results,TileShiftAction
 from GraphSearch import bfs_search
 import random
 import os 
@@ -74,16 +74,16 @@ Straight2 =  [  [" "," "," "],
 
 """
 
-Corner1 = Tile("C1",0,1,1,0)
-Corner2 = Tile("C2",1,1,0,0)
-Corner3 = Tile("C3",1,0,0,1)
-Corner4 = Tile("C4",0,0,1,1)
-T_1 = Tile("T1",1,1,1,0)
-T_2 = Tile("T2",1,1,0,1)
-T_3 = Tile("T3",1,0,1,1)
-T_4 = Tile("T4",0,1,1,1)
-Straight1 = Tile("S1",1,0,1,0)
-Straight2 = Tile("S2",0,1,0,1)
+Corner1 = Tile(0,1,1,0)
+Corner2 = Tile(1,1,0,0)
+Corner3 = Tile(1,0,0,1)
+Corner4 = Tile(0,0,1,1)
+T_1 = Tile(1,1,1,0)
+T_2 = Tile(1,1,0,1)
+T_3 = Tile(1,0,1,1)
+T_4 = Tile(0,1,1,1)
+Straight1 = Tile(1,0,1,0)
+Straight2 = Tile(0,1,0,1)
 
 Tiles = [Corner1,Corner2,Corner3,Corner4,T_1,T_2,T_3,T_4,Straight1,Straight2]
 
@@ -113,7 +113,7 @@ Player_1 = [4,4] #Changed to array (not tuple) in order to be modified
 Player_2 = [0,0]
 
 
-CurrentState = State(Player_1,Player_2,Treasure_P1,Treasure_P2,CurrentTiles)
+CurrentState = State(Player_1,Player_2,Treasure_P1,Treasure_P2,CurrentTiles,[copy.deepcopy(Straight1),copy.deepcopy(Straight1)])
 
 #-------------------------- Board Display -------------------
 
@@ -157,18 +157,11 @@ Player_2 = [0,0]
 Treasure_P1 = [3,2]
 Treasure_P2 = [4,0]
 
-CurrentState = State(Player_1,Player_2,Treasure_P1,Treasure_P2,CurrentTiles)
+side_tile =Tile(1,1,1,1) #This type of tile shouldn't exist; just for testing purposes
+CurrentState = State(Player_1,Player_2,Treasure_P1,Treasure_P2,CurrentTiles,[side_tile])
 
 CurrentState.display()
-for s in CurrentState.childs():
-	s.display()
-	print(s.AI_Pos)
-	print(s.board[0][0].ASCII)
-	for a in actions(s):
-		print(a)
-	for ss in s.childs():
-		ss.display()
-		print(ss.AI_Pos)
+
 
 Solution = bfs_search(CurrentState)
 
@@ -182,3 +175,9 @@ if Solution is not None:
 	print("SOLUTION FOUND WITH THE FOLLOWING STEPS:")
 	animate_states(Solution)
 else: print("NO SOLUTION FOUND")
+
+
+#TILE SHIFT TESTING
+print('3RD ROW TILE SHIFT IN DIRECTION +1')
+shift = TileShiftAction([side_tile],True,3,1)
+results(CurrentState,shift).display()
