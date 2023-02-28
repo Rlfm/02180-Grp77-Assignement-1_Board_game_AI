@@ -93,7 +93,11 @@ class Tile:
         if OpenS : self.ASCII[2][1]="█"
         if OpenW : self.ASCII[1][0]="█"
     def __str__(self):
-         return self
+         return self.OpenN
+    def __eq__(self,tile):
+        return self.OpenN==tile.OpenN and self.OpenE==tile.OpenE and self.OpenS==tile.OpenS and self.OpenW==tile.OpenW
+    def __hash__(self):
+        return hash((self.OpenN,self.OpenE,self.OpenS,self.OpenW))
     
     def rotationsList(self):
         #Function returning all possible tiles by rotating a given tile
@@ -102,7 +106,9 @@ class Tile:
         tilesList[2] = Tile(self.OpenS,self.OpenW,self.OpenN,self.OpenE)
         tilesList[3] = Tile(self.OpenE,self.OpenS,self.OpenW,self.OpenN)
         return tilesList
-
+    def rotate(self,i):
+        return self.rotationsList()[i]
+    
 def results(state,action):
     #Returns the resulting state after applying the given action to the state
     new_state = copy.deepcopy(state)
