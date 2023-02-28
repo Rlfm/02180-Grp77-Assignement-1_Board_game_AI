@@ -154,14 +154,13 @@ CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy
 
 Player_1 = [4,4]
 Player_2 = [0,0]
-Treasure_P1 = [3,2]
+Treasure_P1 = [3,2] # /!\ Treasures shouldn't be on moving tiles /!\ Only good for testing 
 Treasure_P2 = [4,0]
 
 side_tile =Tile(1,1,1,1) #This type of tile shouldn't exist; just for testing purposes
 CurrentState = State(Player_1,Player_2,Treasure_P1,Treasure_P2,CurrentTiles,[side_tile])
 
 CurrentState.display()
-
 
 Solution = bfs_search(CurrentState)
 

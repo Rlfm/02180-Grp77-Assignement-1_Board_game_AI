@@ -62,7 +62,7 @@ class MoveAction:
         self.delta_col = delta_col
     def __str__(self):
         return self.name
-#Définition des actions de déplacement
+#Definition of moving actions
 MoveN = MoveAction("MoveN",-1,0)
 MoveS = MoveAction("MoveS",1,0)
 MoveE = MoveAction("MoveE",0,-1)

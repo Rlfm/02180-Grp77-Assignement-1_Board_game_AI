@@ -38,3 +38,5 @@ def ManhattanHeuristic(state):
     col = state.AI_Pos[1]
     goal_row = state.AI_Treasure[0]
     goal_col = state.AI_Treasure[0]
+
+    return abs(row-goal_row) + abs(col-goal_col)
