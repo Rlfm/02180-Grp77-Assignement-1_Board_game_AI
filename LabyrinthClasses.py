@@ -1,5 +1,7 @@
 from termcolor import colored
 import copy
+
+
 class State:
     def __init__(self, P1,P2,T1,T2,board,side_tiles):
         self.Human_Pos= P1
@@ -62,6 +64,8 @@ class MoveAction:
         self.delta_col = delta_col
     def __str__(self):
         return self.name
+    
+    
 #Definition of moving actions
 MoveN = MoveAction("MoveN",-1,0)
 MoveS = MoveAction("MoveS",1,0)
