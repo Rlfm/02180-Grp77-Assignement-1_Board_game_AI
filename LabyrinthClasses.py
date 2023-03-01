@@ -3,7 +3,7 @@ import copy
 
 
 class State:
-    def __init__(self, P1,P2,T1,T2,board,side_tiles):
+    def __init__(self, P1,P2,T1,T2,board,side_tiles,forbiddenShift = None):
         self.Human_Pos= P1
         self.AI_Pos = P2
         self.Human_Treasure = T1
@@ -12,7 +12,8 @@ class State:
         self.size = (len(board),len(board[0]))
         self.side_tiles = side_tiles
         #self.turn
-        #self.forbiddenShift
+        #TODO:Implement forbiddenShift
+        self.forbiddenShift = forbiddenShift
     def isGoal(self):
          if self.AI_Pos == self.AI_Treasure: return True
          else: return False
@@ -91,6 +92,11 @@ class TileShiftAction:
             self.index = RowCol_index
             self.dir =direction
         else: print("ERROR: Row/Col index must be odd")
+    def __eq__(self,other):
+        if isinstance(other, type(self)):
+            return self.__dict__ == other.__dict__
+    def __hash__(self):
+        return hash(tuple(self.new_tiles),self.isRowShift,self.index,self.dir)
 
 class Tile:
     def __init__(self,OpenN,OpenE,OpenS,OpenW):
@@ -156,14 +162,43 @@ def results(state,action):
                     new_state.board[action.index][state.size[0]-i-1] = action.new_tiles[-1-i]
     return new_state
 
-#TODO: Add support for TileShiftActions
-def actions(state,action):
+
+def subsets(lst):
+    if len(lst) == 0:
+        return [[]]
+    smaller = subsets(lst[:-1])
+    extra = lst[-1:]
+    new = []
+    for small in smaller:
+        new.append(small+extra)
+    return smaller+new
+
+def actions(state,actionClass):
+
     #Returns all the applicable actions for a given state
     applicableActions = []
-    if isinstance(action,MoveAction):
+
+    if actionClass == MoveAction:
         for action in MoveActionsList:
             if isApplicable(state,action): applicableActions.append(action)
-        return applicableActions
+
+    elif actionClass == TileShiftAction:
+        forbiddenShift = state.forbiddenShift
+        dirs = [-1,1]
+        size = len(state.board)
+        odd_indexes = [num for num in range(size) if num % 2 != 0]
+        tiles = state.side_tiles
+        for subset in subsets(tiles):
+            for dir in dirs:
+                for index in odd_indexes:
+                    for isRowShift in [True,False]:
+                        action = TileShiftAction(subset,isRowShift,index,dir)
+                        applicableActions.append(action)
+        applicableActions.remove(forbiddenShift)
+
+    return applicableActions
+
+
 
 def isApplicable(state,action):
     #Returns True if the action is applicable for the given state
