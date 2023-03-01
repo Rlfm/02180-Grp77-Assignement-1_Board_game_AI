@@ -7,12 +7,13 @@ import copy
 pygame.init()
 
 MARGIN = 50
+DASHBOARD = 200
 TILE_SIDE = 100
 ROWS = 5
 COLS = 5
 
 # Set the size of the game screen
-screen_width = TILE_SIDE*COLS+2*MARGIN
+screen_width = TILE_SIDE*COLS+2*MARGIN+DASHBOARD
 screen_height = TILE_SIDE*ROWS+2*MARGIN
 screen = pygame.display.set_mode((screen_width, screen_height))
 
@@ -105,6 +106,12 @@ def blitBoard(board, screen):
             sprite.rect.topleft = (50+col*100, 50+row*100)
             screen.blit(sprite.image, sprite.rect)
 
+def blitSideTile(tile,screen):
+    sprite = tiles_sprites[tile]
+    sprite.rect.center = (MARGIN*2+TILE_SIDE*COLS+DASHBOARD/2,TILE_SIDE)
+    screen.blit(sprite.image,sprite.rect)
+
+
 def animateTileShift(board,tileShiftAction):
     #TODO: Write the tile shift animation
     pass
@@ -135,7 +142,7 @@ CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(T_1),copy.deepcopy(T_2),
 
 
 blitBoard(CurrentTiles,screen)
-
+blitSideTile(Tile(0,1,1,0),screen)
 # Update the display
 pygame.display.update()
 
