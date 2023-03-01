@@ -1,34 +1,43 @@
 from termcolor import colored
 import copy
-
+import numpy as np
 
 class State:
-    def __init__(self, P1,P2,T1,T2,board,side_tiles,forbiddenShift = None):
+    def __init__(self, P1,P2,T1,T2,board,side_tile,forbidden_shift = None):
         self.Human_Pos= P1
         self.AI_Pos = P2
         self.Human_Treasure = T1
         self.AI_Treasure = T2
-        self.board = board
+        self.board = np.array(board)
         self.size = (len(board),len(board[0]))
-        self.side_tiles = side_tiles
-        #self.turn
-        #TODO:Implement forbiddenShift
-        self.forbiddenShift = forbiddenShift
+        self.side_tile = side_tile
+        self.forbidden_shift = forbidden_shift
     def isGoal(self):
          if self.AI_Pos == self.AI_Treasure: return True
          else: return False
     def __str__(self):
         self.display()
-    def __eq__(self,other):
-        if isinstance(other, type(self)):
-            return self.__dict__ == other.__dict__
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return (self.Human_Pos == other.Human_Pos and
+                    self.AI_Pos == other.AI_Pos and
+                    self.Human_Treasure == other.Human_Treasure and
+                    self.AI_Treasure == other.AI_Treasure and
+                    np.array_equal(self.board, other.board) and
+                    self.size == other.size and
+                    self.side_tile == other.side_tile and
+                    self.forbidden_shift == other.forbidden_shift)
+        else:
+            return False
     def __hash__(self):
         attributes = []
         print(self.__dict__)
         for key,var in self.__dict__.items():
             print(var)
-            if key=='board':
+            if key =='board':
                 attributes.append(hash(tuple(map(tuple,var))))
+            elif key == 'forbidden_shift':
+                attributes.append(hash(var))
             else: attributes.append(hash(tuple(var)))
         return hash(tuple(attributes))
     def childs_move(self):
@@ -84,10 +93,10 @@ MoveW = MoveAction("MoveW",0,1)
 MoveActionsList = [MoveN,MoveS,MoveE,MoveW]
 
 class TileShiftAction:
-    def __init__(self,tiles,isRowShift,RowCol_index,direction):
+    def __init__(self,tile,isRowShift,RowCol_index,direction):
         if RowCol_index % 2 == 1:
             #Only odd row/col indexes can be shifted
-            self.new_tiles=tiles
+            self.new_tile=tile
             self.isRowShift = isRowShift
             self.index = RowCol_index
             self.dir =direction
@@ -137,29 +146,21 @@ def results(state,action):
     #TODO: add support for column shift
     elif isinstance(action, TileShiftAction):
         if action.isRowShift:
-            #line = state.board[action.index]
-            new_tiles_number = len(action.new_tiles)
-            for tile in action.new_tiles:
-                new_state.side_tiles.remove(tile) 
-                pass
-            if action.dir==1:
-                for i in range(new_tiles_number):
-                    new_state.side_tiles.append(state.board[action.index][state.size[0]-i-1])
-            else:
-                for i in range(new_tiles_number):
-                    new_state.side_tiles.append(state.board[action.index][i])
+            line = state.board[action.index,:]
+        else: line = state.board[:,action.index]
 
-            if action.dir==1:
-                for i in range(state.size[0]-new_tiles_number):
+        if action.dir == 1 :
+            new_state.side_tile, line = line[-1], line[:-1] 
+            line = np.concatenate((action.new_tile,line))
+        else: 
+            new_state.side_tile, line = line[0], line[1:]
+            line = np.concatenate((line,action.new_tile))
+        
+        if action.isRowShift:
+            new_state.board[action.index,:] = line
+        else: new_state.board[:,action.index] = line
 
-                    new_state.board[action.index][state.size[0]-i-1] = state.board[action.index][state.size[0]-i-2]
-                for i in range(new_tiles_number):
-                    new_state.board[action.index][i] = action.new_tiles[i]
-            else:
-                for i in range(state.size[0]-new_tiles_number):
-                    new_state.board[action.index][i] = state.board[action.index][i+1]
-                for i in range(new_tiles_number):
-                    new_state.board[action.index][state.size[0]-i-1] = action.new_tiles[-1-i]
+        new_state.board
     return new_state
 
 
