@@ -76,7 +76,7 @@ class State:
 
         for row in screen_rows:
             print(row)
-
+#TODO: Add what player is moving
 class MoveAction:
     def __init__(self, name, delta_row, delta_col):
         self.name = name
@@ -144,6 +144,7 @@ def results(state,action):
         result_Pos = [state.AI_Pos[0] + action.delta_row, state.AI_Pos[1]+action.delta_col]
         new_state.AI_Pos=result_Pos
     #TODO: add support for column shift
+    #TODO: shift treasures and players
     elif isinstance(action, TileShiftAction):
         if action.isRowShift:
             line = state.board[action.index,:]
@@ -183,6 +184,7 @@ def actions(state,actionClass):
         for action in MoveActionsList:
             if isApplicable(state,action): applicableActions.append(action)
 
+    #TODO just check if forbidden else None
     elif actionClass == TileShiftAction:
         forbiddenShift = state.forbiddenShift
         dirs = [-1,1]
