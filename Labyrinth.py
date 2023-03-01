@@ -8,7 +8,7 @@ def progress_bar(progress,total):
 	if percent >= 100:
 		print("\r" + 110*" ",end="\r")
 
-from LabyrinthClasses import State, MoveAction, Tile,actions,results,TileShiftAction
+from LabyrinthClasses import *
 from GraphSearch import bfs_search
 import random
 import os 
@@ -103,45 +103,6 @@ for n in range(5):
 		CurrentTiles[n].append(new_tile)
 		Board[n].append(new_tile.ASCII)
 
-Treasures_positions = [(0,2),(0,4),(2,0),(2,2),(2,4),(4,2),(4,4),(4,0)]
-
-Treasure_P1 = random.choice(Treasures_positions)
-Treasures_positions.remove(Treasure_P1)
-Treasure_P2 = random.choice(Treasures_positions)
-
-Player_1 = [4,4] #Changed to array (not tuple) in order to be modified
-Player_2 = [0,0]
-
-
-CurrentState = State(Player_1,Player_2,Treasure_P1,Treasure_P2,CurrentTiles,[copy.deepcopy(Straight1),copy.deepcopy(Straight1)])
-
-#-------------------------- Board Display -------------------
-
-def Display():
-	global Board
-	screen_rows = list()
-
-	Board[Treasure_P1[0]][Treasure_P1[1]][1][1] = colored("$","blue")
-	Board[Treasure_P2[0]][Treasure_P2[1]][1][1] = colored("£","red")
-	
-	Board[Player_1[0]][Player_1[1]][1][1] = colored("█","blue")
-	Board[Player_2[0]][Player_2[1]][1][1] = colored("█","red")
-
-	board_display = list()
-	for row_nb in range(NB_COL_ROW):
-		for char_row in range(3):
-			row = f"         ░{'░'.join([''.join(Board[row_nb][col][char_row]) for col in range(NB_COL_ROW)])}░"
-			board_display.append(row)
-		
-		if row_nb != NB_COL_ROW-1:
-			board_display.append(f"         {(len(row)-9)*'░'}")
-
-	screen_rows = ["","","","","",f"         {(len(row)-9)*'░'}"] + board_display + [f"         {(len(row)-9)*'░'}","","","","",""]
-
-	for row in screen_rows:
-		print(row)
-
-Display()
 
 ##BFS TESTING
 
@@ -152,14 +113,15 @@ CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy
 		[copy.deepcopy(Straight2),copy.deepcopy(Corner3),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],]
 
 
-Player_1 = [4,4]
-Player_2 = [0,0]
-Treasure_P1 = [3,2] # /!\ Treasures shouldn't be on moving tiles /!\ Only good for testing 
-Treasure_P2 = [4,0]
+
+Treasure_P1 = Treasure(3,2,0) # /!\ Treasures shouldn't be on moving tiles /!\ Only good for testing 
+Treasure_P2 = Treasure(4,0,1)
+AI = Player(0,0,Treasure_P2,True)
+Human = Player(4,4,Treasure_P1,False)
 
 side_tile =Tile(1,1,1,1) #This type of tile shouldn't exist; just for testing purposes
-CurrentState = State(Player_1,Player_2,Treasure_P1,Treasure_P2,CurrentTiles,[side_tile])
-
+#CurrentState = State(Player_1,Player_2,Treasure_P1,Treasure_P2,CurrentTiles,side_tile)
+CurrentState = State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile)
 CurrentState.display()
 
 Solution = bfs_search(CurrentState)
@@ -168,7 +130,7 @@ def animate_states(states):
     for state in states:
         print("\033c", end="")
         state.display()
-        time.sleep(1)
+        time.sleep(0.2)
 	
 if Solution[0] is not None:
 	print("SOLUTION FOUND WITH THE FOLLOWING STEPS:")
@@ -179,6 +141,9 @@ else:
 
 
 #TILE SHIFT TESTING
-print('3RD ROW TILE SHIFT IN DIRECTION +1')
-shift = TileShiftAction([side_tile],True,3,-1)
+shift = TileShiftAction(side_tile,True,1,1)
+print(shift)
 results(CurrentState,shift).display()
+tile_shifts = actions(CurrentState,TileShiftAction)
+for a in tile_shifts:
+	print(a)

@@ -20,7 +20,7 @@ def bfs_search(start_state):
         expandedNodes.add(node)
         
         # Check if we've found the goal state
-        if node.isGoal():
+        if node.isAI_at_goal():
             return  (path[node],expandedNodes)
         
         # Add child nodes to the queue if they haven't been visited
