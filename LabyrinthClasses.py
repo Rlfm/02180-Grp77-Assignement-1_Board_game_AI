@@ -19,6 +19,7 @@ class Entity:
 
 
 class Treasure(Entity):
+    # Position is [-1,-1] if treasure is outside the board
     def __init__(self,x,y,id):
         super().__init__(x,y)
         self.id = id
@@ -256,9 +257,29 @@ def results(state,action:Union[TileShiftAction,MoveAction]):
             new_state.board[action.index,:] = line
         else: new_state.board[:,action.index] = line
 
-        #TODO: shift treasures and players
-        if action.isRowShift:
-            pass
+        entities = new_state.players + new_state.treasures
+        for entity in entities:
+            if (action.isRowShift and entity.x == action.index) or (not action.isRowShift and entity.y == action.index):
+                if action.isRowShift:
+                    entity.y +=action.dir
+                    if entity.y==state.size[0]:
+                        if isinstance(entity,Player): entity.y=0
+                        else: entity.y,entity.x = None,None
+                    elif entity.y == -1 and isinstance(entity,Player):
+                        entity.y=state.size[0]-1
+                    else: entity.y,entity.x = None,None
+                else: 
+                    entity.x +=action.dir
+                    if entity.x==state.size[0]:
+                        if isinstance(entity,Player):
+                            entity.x=0
+                        else: entity.y,entity.x = None,None
+                    elif entity.x == -1 and isinstance(entity,Player):
+                        entity.x=state.size[0]-1
+                    else: entity.y,entity.x = None,None
+                print(entity.x,entity.y)
+        new_state = State(new_state.players,new_state.treasures,new_state.board,new_state.side_tile,new_state.forbidden_shift)
+        
     return new_state
 
 
