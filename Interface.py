@@ -105,7 +105,10 @@ def blitBoard(board, screen):
             sprite.rect.topleft = (50+col*100, 50+row*100)
             screen.blit(sprite.image, sprite.rect)
 
-    
+def animateTileShift(board,tileShiftAction):
+    #TODO: Write the tile shift animation
+    pass
+
 
 ##TESTING
 

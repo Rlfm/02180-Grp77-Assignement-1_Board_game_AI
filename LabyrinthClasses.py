@@ -11,25 +11,35 @@ class State:
         self.board = board
         self.size = (len(board),len(board[0]))
         self.side_tiles = side_tiles
+        #self.turn
+        #self.forbiddenShift
     def isGoal(self):
          if self.AI_Pos == self.AI_Treasure: return True
          else: return False
     def __str__(self):
         self.display()
+    def __eq__(self,other):
+        if isinstance(other, type(self)):
+            return self.__dict__ == other.__dict__
+    def __hash__(self):
+        attributes = []
+        print(self.__dict__)
+        for key,var in self.__dict__.items():
+            print(var)
+            if key=='board':
+                attributes.append(hash(tuple(map(tuple,var))))
+            else: attributes.append(hash(tuple(var)))
+        return hash(tuple(attributes))
     def childs_move(self):
         states = []
-        for action in actions(self):
+        for action in actions(self,MoveAction):
             states.append(results(self,action))
         return states
-    def equals(self,state):
-         if state.AI_Pos == self.AI_Pos and state.Human_Pos == self.Human_Pos:
-            return True
     def inList(self,statesList):
         for s in statesList:
-              if s.equals(self):
+              if s==self:
                    return True
         return False
-    
     def display(self):
         Board = [[] for _ in range(self.size[0])]
         for i in range(self.size[0]):
@@ -65,13 +75,12 @@ class MoveAction:
     def __str__(self):
         return self.name
     
-    
 #Definition of moving actions
 MoveN = MoveAction("MoveN",-1,0)
 MoveS = MoveAction("MoveS",1,0)
 MoveE = MoveAction("MoveE",0,-1)
 MoveW = MoveAction("MoveW",0,1)
-ActionsList = [MoveN,MoveS,MoveE,MoveW]
+MoveActionsList = [MoveN,MoveS,MoveE,MoveW]
 
 class TileShiftAction:
     def __init__(self,tiles,isRowShift,RowCol_index,direction):
@@ -82,7 +91,7 @@ class TileShiftAction:
             self.index = RowCol_index
             self.dir =direction
         else: print("ERROR: Row/Col index must be odd")
-        
+
 class Tile:
     def __init__(self,OpenN,OpenE,OpenS,OpenW):
         self.OpenN=OpenN
@@ -97,7 +106,7 @@ class Tile:
         if OpenS : self.ASCII[2][1]="█"
         if OpenW : self.ASCII[1][0]="█"
     def __str__(self):
-         return self.OpenN
+         return str(self.OpenN)+str(self.OpenE)+str(self.OpenS)+str(self.OpenW)
     def __eq__(self,tile):
         return self.OpenN==tile.OpenN and self.OpenE==tile.OpenE and self.OpenS==tile.OpenS and self.OpenW==tile.OpenW
     def __hash__(self):
@@ -122,11 +131,10 @@ def results(state,action):
     #TODO: add support for column shift
     elif isinstance(action, TileShiftAction):
         if action.isRowShift:
-            line = state.board[action.index]
+            #line = state.board[action.index]
             new_tiles_number = len(action.new_tiles)
             for tile in action.new_tiles:
-                #new_state.side_tiles.remove(tile) 
-                #TODO: Fix the above line
+                new_state.side_tiles.remove(tile) 
                 pass
             if action.dir==1:
                 for i in range(new_tiles_number):
@@ -143,19 +151,19 @@ def results(state,action):
                     new_state.board[action.index][i] = action.new_tiles[i]
             else:
                 for i in range(state.size[0]-new_tiles_number):
-                    print(i)
                     new_state.board[action.index][i] = state.board[action.index][i+1]
                 for i in range(new_tiles_number):
                     new_state.board[action.index][state.size[0]-i-1] = action.new_tiles[-1-i]
     return new_state
 
 #TODO: Add support for TileShiftActions
-def actions(state):
+def actions(state,action):
     #Returns all the applicable actions for a given state
     applicableActions = []
-    for action in ActionsList:
-         if isApplicable(state,action): applicableActions.append(action)
-    return applicableActions
+    if isinstance(action,MoveAction):
+        for action in MoveActionsList:
+            if isApplicable(state,action): applicableActions.append(action)
+        return applicableActions
 
 def isApplicable(state,action):
     #Returns True if the action is applicable for the given state

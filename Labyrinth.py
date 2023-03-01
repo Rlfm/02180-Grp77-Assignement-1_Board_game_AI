@@ -180,5 +180,5 @@ else:
 
 #TILE SHIFT TESTING
 print('3RD ROW TILE SHIFT IN DIRECTION +1')
-shift = TileShiftAction([side_tile],True,3,1)
+shift = TileShiftAction([side_tile],True,3,-1)
 results(CurrentState,shift).display()
