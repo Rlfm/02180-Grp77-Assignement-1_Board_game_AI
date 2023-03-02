@@ -273,13 +273,13 @@ Corner = Tile(0,1,1,0)
 T = Tile(1,1,1,0)
 Straight = Tile(1,0,1,0)
 
-Tiles = Corner.rotationsList() + T.rotationsList() + [Straight, Straight.rotate(1)]
+TILES = Corner.rotationsList() + T.rotationsList() + [Straight, Straight.rotate(1)]
 
 
 def generate_board(rows,cols):
     board = np.zeros(rows,cols)
     for i in range(rows):
         for j in range(cols):
-            board[i,j] = Tiles[random.randint(0,len(Tiles)-1)]
+            board[i,j] = TILES[random.randint(0,len(TILES)-1)]
     return board
 
