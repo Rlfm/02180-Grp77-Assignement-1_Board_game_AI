@@ -2,71 +2,8 @@ from termcolor import colored
 import copy
 import numpy as np
 from typing import Union
+from Entities import *
 import random
-
-class Entity:
-    def __init__(self, x:int,y:int):
-        self.x=x
-        self.y=y
-        
-    def __eq__(self, other):
-        if isinstance(other, type(self)):
-            return self.__dict__ == other.__dict__
-        return False
-    
-    def __hash__(self):
-        return hash(tuple(sorted(self.__dict__.items())))
-
-
-class Treasure(Entity):
-    # Position is [-1,-1] if treasure is outside the board
-    def __init__(self,x,y,id):
-        super().__init__(x,y)
-        self.id = id
-        
-    def __eq__(self, other):
-        if isinstance(other, type(self)):
-            return self.__dict__ == other.__dict__
-        return False
-    
-    def __hash__(self):
-        return hash(tuple(sorted(self.__dict__.items())))
-
-
-class Player(Entity):
-    def __init__(self,x,y, goal:Treasure, isAI:bool):
-        super().__init__(x,y)
-        self.goal = goal
-        self.isAI=isAI
-    
-    def isAtGoal(self):
-        return (self.x == self.goal.x and 
-                self.y == self.goal.y)
-    
-    def __eq__(self, other):
-        if isinstance(other, type(self)):
-            return self.__dict__ == other.__dict__
-        return False
-    
-    def __hash__(self):
-        return hash(tuple(sorted(self.__dict__.items())))
-    
-
-
-def generate_treasures(board_size,n):
-    treasures = [0]*n
-    for i in range(n):
-        x = random.randint(0, board_size - 1)
-        y = random.randint(0, board_size - 1)
-        while [x,y] in treasures:
-            x = random.randint(0, board_size - 1)
-            y = random.randint(0, board_size - 1)
-        treasures[i]=Treasure(x,y,i)
-    return treasures
-
-treasures = generate_treasures(5,2)
-AI = Player(0,0,treasures[0],True)
-Human = Player(4,4,treasures[1],False)
 
 class Tile:
     def __init__(self,OpenN:bool,OpenE:bool,OpenS:bool,OpenW:bool):
@@ -98,7 +35,6 @@ class Tile:
     def rotate(self,i):
         return self.rotationsList()[i]
     
-
 class State:
     def __init__(self, players:list[Player],treasures:list[Treasure],board:list,side_tile:Tile,forbidden_shift:Tile = None):
         self.players = players
@@ -157,6 +93,7 @@ class State:
               if s==self:
                    return True
         return False
+    ##TODO: Support None positions for treasures
     def display(self):
         Board = [[] for _ in range(self.size[0])]
         for i in range(self.size[0]):
@@ -184,29 +121,6 @@ class State:
         for row in screen_rows:
             print(row)
 
-class MoveAction:
-    def __init__(self, name:str, delta_row:int, delta_col:int,isAI:bool=True):
-        self.name = name
-        self.delta_row = delta_row
-        self.delta_col = delta_col
-        self.isAI = isAI
-    def __str__(self):
-        return self.name
-    
-#Definition of moving actions
-MoveN = MoveAction("MoveN",-1,0)
-MoveS = MoveAction("MoveS",1,0)
-MoveE = MoveAction("MoveE",0,-1)
-MoveW = MoveAction("MoveW",0,1)
-MoveActionsList_AI = [MoveN,MoveS,MoveE,MoveW]
-
-MoveN = MoveAction("MoveN",-1,0,False)
-MoveS = MoveAction("MoveS",1,0,False)
-MoveE = MoveAction("MoveE",0,-1,False)
-MoveW = MoveAction("MoveW",0,1,False)
-MoveActionsList_Human = [MoveN,MoveS,MoveE,MoveW]
-
-
 class TileShiftAction:
     def __init__(self,tile:Tile,isRowShift:bool,RowCol_index:int,direction:int):
         if RowCol_index % 2 == 1:
@@ -226,8 +140,7 @@ class TileShiftAction:
         else: row_or_col='column'
         return ('Tile '+str(self.new_tile) +' inserted at ' +row_or_col+str(self.index)+ ' in direction ' + str(self.dir))
 
-    
-def results(state,action:Union[TileShiftAction,MoveAction]):
+def results(state:State,action:Union[TileShiftAction,MoveAction]):
     #Returns the resulting state after applying the given action to the state
     new_state = copy.deepcopy(state)
 
@@ -282,8 +195,7 @@ def results(state,action:Union[TileShiftAction,MoveAction]):
         
     return new_state
 
-
-def actions(state,actionClass:type,isAI:bool = True):
+def actions(state:State,actionClass:type,isAI:bool = True):
 
     #Returns all the applicable actions for a given state
     applicableActions = []
@@ -306,8 +218,6 @@ def actions(state,actionClass:type,isAI:bool = True):
         if forbidden_shift in applicableActions : applicableActions.remove(forbidden_shift)
 
     return applicableActions
-
-
 
 def isApplicable(state:State,action:MoveAction):
     #Returns True if the action is applicable for the given state
@@ -357,3 +267,19 @@ def isApplicable(state:State,action:MoveAction):
         if not tile_Next.OpenE: return False
 
     return True
+
+
+Corner = Tile(0,1,1,0)
+T = Tile(1,1,1,0)
+Straight = Tile(1,0,1,0)
+
+Tiles = Corner.rotationsList() + T.rotationsList() + [Straight, Straight.rotate(1)]
+
+
+def generate_board(rows,cols):
+    board = np.zeros(rows,cols)
+    for i in range(rows):
+        for j in range(cols):
+            board[i,j] = Tiles[random.randint(0,len(Tiles)-1)]
+    return board
+
