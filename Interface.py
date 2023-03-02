@@ -1,5 +1,5 @@
 import pygame
-from LabyrinthClasses import Tile
+from LabyrinthClasses import *
 import random
 import copy
 
@@ -17,6 +17,8 @@ screen_width = TILE_SIDE*COLS+2*MARGIN+DASHBOARD
 screen_height = TILE_SIDE*ROWS+2*MARGIN
 screen = pygame.display.set_mode((screen_width, screen_height))
 
+side_tile_x = MARGIN*2+TILE_SIDE*COLS+DASHBOARD/2
+side_tile_y = TILE_SIDE
 
 # Set the size of each tile
 tile_width = TILE_SIDE
@@ -25,16 +27,14 @@ tile_height = TILE_SIDE
 arrow_height = TILE_SIDE/3
 arrow_width = arrow_height/2
 
+rot_width = TILE_SIDE/2
+rot_height = rot_width/2
+
 # Load the sprite images
 tiles_images = {
     'corner':pygame.image.load('sprites/Tile_Corner.png').convert_alpha(),
     'straight':pygame.image.load('sprites/Tile_Straight.png').convert_alpha(),
-    'T':pygame.image.load('sprites/Tile_T.png').convert_alpha(),
-    'treasure0':pygame.image.load('sprites/Treasure0.png').convert_alpha(),
-    'treasure1':pygame.image.load('sprites/Treasure1.png').convert_alpha(),
-    'treasure2':pygame.image.load('sprites/Treasure2.png').convert_alpha(),
-    'treasure3':pygame.image.load('sprites/Treasure3.png').convert_alpha()
-}
+    'T':pygame.image.load('sprites/Tile_T.png').convert_alpha()}
 
 
 # Create a sprite dictionnary
@@ -63,37 +63,84 @@ for tile_name, tile_image in tiles_images.items():
                 tiles_sprites[Tile(0,1,1,0).rotate(i)] = sprite
             elif tile_name == 'T':
                 tiles_sprites[Tile(1,1,1,0).rotate(i)] = sprite
-            #TODO: Add different types of treasure tiles (for now: only straight North/South)
-            else:
-                pass
-                #tiles_sprites[Tile(1,0,1,0).rotate(i)] = sprite
 
-# Load the other sprites
-arrow_image = pygame.transform.scale(pygame.image.load('sprites/arrow.png').convert_alpha(),(arrow_width,arrow_height))
-arrow_sprites=[0]*4
-for i in range(4):
-    rotated_image = pygame.transform.rotate(arrow_image, i*-90)
+# Load treasure images
+treasure_images = [pygame.image.load('sprites/treasure0.png').convert_alpha(),
+                   pygame.image.load('sprites/treasure1.png').convert_alpha(),
+                   pygame.image.load('sprites/treasure2.png').convert_alpha()]
+
+treasure_sprites = [0]*len(treasure_images)
+
+for i in range(len(treasure_images)):
     sprite = pygame.sprite.Sprite()
-    sprite.image = rotated_image
+    sprite.image = pygame.transform.scale(treasure_images[i],(TILE_SIDE/2.5,TILE_SIDE/2.5))
     sprite.rect = sprite.image.get_rect()
-    arrow_sprites[i] = sprite
+    treasure_sprites[i] = sprite
 
+def blitTreasure(treasure:Treasure):
+    sprite = treasure_sprites[treasure.id]
+    if treasure.x == None:
+        sprite.rect.center = (side_tile_x,side_tile_y)
+    else: 
+        sprite.rect.center = (MARGIN+TILE_SIDE*(treasure.x+0.5),MARGIN+TILE_SIDE*(treasure.y+0.5))
+    screen.blit(sprite.image,sprite.rect)
+
+# Load player images
+player_images = [pygame.image.load('sprites/player1.png').convert_alpha(),
+                   pygame.image.load('sprites/player2.png').convert_alpha()]
+
+player_sprites = [0]*len(player_images)
+
+for i in range(len(player_images)):
+    sprite = pygame.sprite.Sprite()
+    sprite.image = pygame.transform.scale(player_images[i],(TILE_SIDE/2.5,TILE_SIDE/2.5))
+    sprite.rect = sprite.image.get_rect()
+    player_sprites[i] = sprite
+
+def blitPlayer(player:Player):
+    if player.isAI: sprite = player_sprites[0]
+    else: sprite = player_sprites[1]
+    sprite.rect.center = (MARGIN+TILE_SIDE*(player.x+0.5),MARGIN+TILE_SIDE*(player.y+0.5))
+    screen.blit(sprite.image,sprite.rect)
+
+
+# Load shifting arrows sprites
+arrow_images = [pygame.transform.scale(pygame.image.load('sprites/arrow_unavailable.png').convert_alpha(),(arrow_width,arrow_height)),
+                pygame.transform.scale(pygame.image.load('sprites/arrow.png').convert_alpha(),(arrow_width,arrow_height))]
+arrow_sprites=[[0]*4]*2
+for i in range(4):
+    for j in range(2):
+        rotated_image = pygame.transform.rotate(arrow_images[j], i*-90)
+        sprite = pygame.sprite.Sprite()
+        sprite.image = rotated_image
+        sprite.rect = sprite.image.get_rect()
+        arrow_sprites[j][i] = sprite
 
 screen.fill((47, 60, 113)) #Background color
 
 # Display the arrows, side after side
-for i in range(4):
-    odds = [num for num in range(ROWS) if num % 2 != 0]
-    for j in odds:
-        sprite = arrow_sprites[i]
-        if i%2==0:
-            sprite.rect.center = (MARGIN*(i+1)/2+(i/2)*COLS*TILE_SIDE, MARGIN+(j+.5)*TILE_SIDE)
-            print(sprite.rect.center)
-        else:
-            sprite.rect.center = (MARGIN+(j+.5)*TILE_SIDE, MARGIN*(i)/2+((i-1)/2)*ROWS*TILE_SIDE)
-            print(sprite.rect.center)
+#TODO: Add support for forbidden shifts
+def blitArrows(screen,forbidden_shift:TileShiftAction):
+    for i in range(4):
+        odds = [num for num in range(ROWS) if num % 2 != 0]
+        for j in odds:
+            sprite = arrow_sprites[0][i]
+            if i%2==0:
+                sprite.rect.center = (MARGIN*(i+1)/2+(i/2)*COLS*TILE_SIDE, MARGIN+(j+.5)*TILE_SIDE)
+            else:
+                sprite.rect.center = (MARGIN+(j+.5)*TILE_SIDE, MARGIN*(i)/2+((i-1)/2)*ROWS*TILE_SIDE)
 
-        screen.blit(sprite.image, sprite.rect)
+            screen.blit(sprite.image, sprite.rect)
+
+# Load rotating arrows sprites
+rot_images = [pygame.transform.scale(pygame.image.load('sprites/arrow_rot_unavailable.png').convert_alpha(),(rot_width,rot_height)),
+              pygame.transform.scale(pygame.image.load('sprites/arrow_rot.png').convert_alpha(),(rot_width,rot_height))]
+rot_sprites={}
+for i in range(2):
+    sprite = pygame.sprite.Sprite()
+    sprite.image = rot_images[i]
+    sprite.rect = sprite.image.get_rect()
+    rot_sprites[i]=sprite
 
 def blitBoard(board, screen):
     #Draws a board on the screen
@@ -108,7 +155,7 @@ def blitBoard(board, screen):
 
 def blitSideTile(tile,screen):
     sprite = tiles_sprites[tile]
-    sprite.rect.center = (MARGIN*2+TILE_SIDE*COLS+DASHBOARD/2,TILE_SIDE)
+    sprite.rect.center = (side_tile_x,side_tile_y)
     screen.blit(sprite.image,sprite.rect)
 
 
@@ -139,10 +186,20 @@ CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(T_1),copy.deepcopy(T_2),
 
 
 
-
-
+forbidden_shift = TileShiftAction(None,1,3,1)
+blitArrows(screen,forbidden_shift)
 blitBoard(CurrentTiles,screen)
 blitSideTile(Tile(0,1,1,0),screen)
+treasures = generate_treasures(ROWS,2)
+treasures.append(Treasure(None,None,2))
+for treasure in treasures:
+    blitTreasure(treasure)
+
+AI = Player(0,0,treasures[0],True)
+Human = Player(4,4,treasures[1],False)
+blitPlayer(AI)
+blitPlayer(Human)
+
 # Update the display
 pygame.display.update()
 
