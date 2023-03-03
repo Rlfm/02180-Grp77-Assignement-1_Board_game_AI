@@ -60,7 +60,7 @@ for tile_name, tile_image in TILE_IMAGES_RAW.items():
 
 BOARD_SPRITES = [[pygame.sprite.Sprite() for j in range(COLS)] for i in range(ROWS)]
 SIDE_TILE_SPRITE = pygame.sprite.Sprite()
-SIDE_TILE_SPRITE.rect=pygame.Rect(SIDE_TILE_X,SIDE_TILE_Y,TILE_SIDE-SIDE_TILE_X/2,TILE_SIDE-SIDE_TILE_Y/2)
+SIDE_TILE_SPRITE.rect=pygame.Rect(SIDE_TILE_X-TILE_SIDE/2,SIDE_TILE_Y-TILE_SIDE/2,TILE_SIDE-SIDE_TILE_X/2,TILE_SIDE-SIDE_TILE_Y/2)
 
 # Load treasure images
 treasure_images = [pygame.image.load('sprites/treasure0.png').convert_alpha(),
@@ -99,37 +99,64 @@ def blitPlayers(players:list[Player]):
     for player in players:
         if player.isAI: sprite = PLAYER_SPRITES[0]
         else: sprite = PLAYER_SPRITES[1]
+
         sprite.rect.center = (MARGIN+TILE_SIDE*(player.x+0.5),MARGIN+TILE_SIDE*(player.y+0.5))
-        SCREEN.blit(sprite.image,sprite.rect)
+
+    if PLAYER_SPRITES[0].rect.center == PLAYER_SPRITES[1].rect.center:
+        PLAYER_SPRITES[0].rect.x = PLAYER_SPRITES[0].rect.x-TILE_SIDE/7
+        PLAYER_SPRITES[1].rect.x = PLAYER_SPRITES[1].rect.x+TILE_SIDE/7
+    SCREEN.blit(PLAYER_SPRITES[0].image,PLAYER_SPRITES[0].rect)
+    SCREEN.blit(PLAYER_SPRITES[1].image,PLAYER_SPRITES[1].rect)
 
 
 # Load shifting arrows sprites
-arrow_images = [pygame.transform.scale(pygame.image.load('sprites/arrow_unavailable.png').convert_alpha(),(arrow_width,arrow_height)),
+ARR0W_IMAGES = [pygame.transform.scale(pygame.image.load('sprites/arrow_unavailable.png').convert_alpha(),(arrow_width,arrow_height)),
                 pygame.transform.scale(pygame.image.load('sprites/arrow.png').convert_alpha(),(arrow_width,arrow_height))]
-arrow_sprites=[[0]*4]*2
+odds = [num for num in range(ROWS) if num % 2 != 0]
+ARROW_SPRITES = [[[pygame.sprite.Sprite() for _ in range(4)] for _ in range(len(odds))] for _ in range(2)]
 for i in range(4):
-    for j in range(2):
-        rotated_image = pygame.transform.rotate(arrow_images[j], i*-90)
-        sprite = pygame.sprite.Sprite()
-        sprite.image = rotated_image
-        sprite.rect = sprite.image.get_rect()
-        arrow_sprites[j][i] = sprite
+    for j in range(len(odds)):
+        for k in range(2):
+            rotated_image = pygame.transform.rotate(ARR0W_IMAGES[k], i*-90)
+
+            sprite = pygame.sprite.Sprite()
+            sprite.image = rotated_image
+            sprite.rect = rotated_image.get_rect()
+
+            if i%2==0:
+                sprite.rect.center = (MARGIN*(i+1)/2+(i/2)*COLS*TILE_SIDE, MARGIN+(j*2+1+.5)*TILE_SIDE)
+            else:
+                sprite.rect.center = (MARGIN+(j*2+1+.5)*TILE_SIDE, MARGIN*(i)/2+((i-1)/2)*ROWS*TILE_SIDE)
+            ARROW_SPRITES[k][j][i] = sprite
 
 SCREEN.fill((47, 60, 113)) #Background color
 
 # Display the arrows, side after side
-#TODO: Add support for forbidden shifts
-def blitArrows(screen,forbidden_shift:TileShiftAction):
-    for i in range(4):
-        odds = [num for num in range(ROWS) if num % 2 != 0]
-        for j in odds:
-            sprite = arrow_sprites[0][i]
-            if i%2==0:
-                sprite.rect.center = (MARGIN*(i+1)/2+(i/2)*COLS*TILE_SIDE, MARGIN+(j+.5)*TILE_SIDE)
-            else:
-                sprite.rect.center = (MARGIN+(j+.5)*TILE_SIDE, MARGIN*(i)/2+((i-1)/2)*ROWS*TILE_SIDE)
+def blitArrows(state:State):
+    forbidden_shift = state.forbidden_shift
+    j=[i for i in range(4)]
+    odds = [num for num in range(ROWS) if num % 2 != 0]
+    evens = [num for num in range(ROWS) if num % 2 == 0]
+    if not forbidden_shift.isRowShift: 
+        for even in evens:
+            j.remove(even)
+        if forbidden_shift.dir != 1:
+            j=j[-1]
+        else: j = j[0]
+    else :
+        for odd in odds:
+            j.remove(odd)
+        if forbidden_shift.dir == 1:
+            j = j[0]
+        else: 
+            j =j[-1]
+    i = int((forbidden_shift.index-1)/2)
 
-            screen.blit(sprite.image, sprite.rect)
+    for k in range(len(ARROW_SPRITES[0])):
+        for m in range(len(ARROW_SPRITES[0][0])):
+            sprite = ARROW_SPRITES[not (k==i and m==j)][k][m]
+            SCREEN.blit(sprite.image,sprite.rect)
+    
 
 # Load rotating arrows sprites
 rot_images = [pygame.transform.scale(pygame.image.load('sprites/arrow_rot_unavailable.png').convert_alpha(),(rot_width,rot_height)),
@@ -158,12 +185,16 @@ def display_state(state:State):
             SCREEN.blit(BOARD_SPRITES[i][j].image,BOARD_SPRITES[i][j].rect)
 
     # Blit the side tile
-    if state.side_tile is not None : SIDE_TILE_SPRITE.image = TILE_IMAGES[state.side_tile]
-    SCREEN.blit(SIDE_TILE_SPRITE.image,SIDE_TILE_SPRITE.rect)
+    if state.side_tile is not None : 
+        SIDE_TILE_SPRITE.image = TILE_IMAGES[state.side_tile]
+        SCREEN.blit(SIDE_TILE_SPRITE.image,SIDE_TILE_SPRITE.rect)
 
+    # Blit entities
     blitTreasures(state.treasures)
     blitPlayers(state.players)
-    
+
+    #Blit the arrows
+    blitArrows(state)
     #TODO: finish the function
 
 
@@ -190,16 +221,17 @@ CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(T_1),copy.deepcopy(T_2),
 
 
 
-forbidden_shift = TileShiftAction(None,1,3,1)
-blitArrows(SCREEN,forbidden_shift)
-#blitBoard(CurrentTiles,SCREEN)
-#blitSideTile(Tile(0,1,1,0),SCREEN)
+forbidden_shift = TileShiftAction(None,1,1,1)
+#(None,1,3,-1)
+
 treasures = generate_treasures(ROWS,2)
 treasures.append(Treasure(None,None,2))
 
 
-AI = Player(0,0,treasures[0],True)
-Human = Player(4,4,treasures[1],False)
+AI = Player(0,1,treasures[0],True)
+Human = Player(0,0,treasures[1],False)
+
+test_state = State([AI,Human],treasures,CurrentTiles,Tile(0,0,1,1),forbidden_shift)
 
 # Update the display
 pygame.display.update()
@@ -211,11 +243,10 @@ def main():
     for i in range(ROWS):
         for j in range(COLS):
             rect = pygame.Rect(MARGIN+TILE_SIDE*j,MARGIN+TILE_SIDE*i,TILE_SIDE,TILE_SIDE)
-            print((MARGIN+TILE_SIDE*j,MARGIN+TILE_SIDE*i,TILE_SIDE,TILE_SIDE))
             BOARD_SPRITES[i][j].rect = rect
     
-    fill_board_sprites(CurrentTiles,BOARD_SPRITES,TILE_IMAGES)
 
+    display_state(test_state)
 
     while True:
         for event in pygame.event.get():
