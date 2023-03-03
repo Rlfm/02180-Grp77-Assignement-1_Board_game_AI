@@ -93,7 +93,12 @@ class State:
               if s==self:
                    return True
         return False
-    ##TODO: Support None positions for treasures
+    def treasure_positions(self):
+        pos = []
+        for t in self.treasures:
+            pos.append([t.x,t.y])
+        return pos
+    #TODO: Support None positions for treasures
     def display(self):
         Board = [[] for _ in range(self.size[0])]
         for i in range(self.size[0]):
