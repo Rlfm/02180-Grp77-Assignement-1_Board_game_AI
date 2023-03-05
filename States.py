@@ -242,7 +242,7 @@ def actions(state:State,actionClass:type,isAI:bool):
         for dir in dirs:
             for index in odd_indexes:
                 for isRowShift in [True,False]:
-                    if not(dir == forbidden_shift.dir and 
+                    if forbidden_shift is None or not(dir == forbidden_shift.dir and 
                            index == forbidden_shift.index and 
                            isRowShift == forbidden_shift.isRowShift): 
                         for i in range(4):
