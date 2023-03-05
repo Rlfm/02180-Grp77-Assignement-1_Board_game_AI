@@ -150,7 +150,7 @@ class TileShiftAction:
             return self.__dict__ == other.__dict__
     def __hash__(self):
         if self.new_tile is not None:
-            return hash(tuple(self.new_tile),self.isRowShift,self.index,self.dir)
+            return hash((self.new_tile,self.isRowShift,self.index,self.dir))
         else: return hash((None,self.isRowShift,self.index,self.dir))
     def __str__(self):
         if self.isRowShift: row_or_col='row'
