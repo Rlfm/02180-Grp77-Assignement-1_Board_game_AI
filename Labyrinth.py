@@ -1,6 +1,6 @@
 
 from States import *
-from GraphSearch import bfs_search
+from GraphSearch import *
 import random
 import os 
 from termcolor import colored
@@ -43,8 +43,8 @@ for n in range(5):
 CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
 		[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
 		[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
-		[copy.deepcopy(Corner2),copy.deepcopy(Corner4),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
-		[copy.deepcopy(Straight2),copy.deepcopy(Corner3),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],]
+		[copy.deepcopy(Corner4),copy.deepcopy(Corner4),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
+		[copy.deepcopy(Straight1),copy.deepcopy(Corner3),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],]
 
 
 
@@ -53,12 +53,12 @@ Treasure_P2 = Treasure(4,0,1)
 AI = Player(0,0,Treasure_P2,True)
 Human = Player(3,4,Treasure_P1,False)
 
-side_tile =Tile(1,1,1,1) #This type of tile shouldn't exist; just for testing purposes
+side_tile =Tile(1,1,0,1) #This type of tile shouldn't exist; just for testing purposes
 #CurrentState = State(Player_1,Player_2,Treasure_P1,Treasure_P2,CurrentTiles,side_tile)
 CurrentState = State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile)
 CurrentState.display()
 
-Solution = bfs_search(CurrentState)
+Solution = bfs_search(CurrentState,True)
 
 def animate_states(states):
     for state in states:
@@ -72,8 +72,7 @@ if Solution[0] is not None:
 else: 
 	print("NO SOLUTION FOUND")
 	animate_states(Solution[1])
-
-print(f"{CurrentState.Human_Treasure=}")
+"""
 #TILE SHIFT TESTING
 shift = TileShiftAction(side_tile,True,3,-1)
 print(shift)
@@ -81,3 +80,7 @@ results(CurrentState,shift).display()
 tile_shifts = actions(CurrentState,TileShiftAction)
 for a in tile_shifts:
 	print(a)
+"""
+
+best_move = A_star(CurrentState)
+print(best_move)
