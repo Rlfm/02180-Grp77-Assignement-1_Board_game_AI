@@ -55,7 +55,7 @@ Human = Player(3,4,Treasure_P1,False)
 
 side_tile =Tile(1,1,0,1) #This type of tile shouldn't exist; just for testing purposes
 #CurrentState = State(Player_1,Player_2,Treasure_P1,Treasure_P2,CurrentTiles,side_tile)
-CurrentState = State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile,TileShiftAction(None,True,3,1))
+CurrentState = State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile,TileShiftAction(None,False,3,1))
 CurrentState.display()
 
 Solution = bfs_search(CurrentState,True)
