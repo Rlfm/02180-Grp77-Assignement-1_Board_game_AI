@@ -1,9 +1,9 @@
 import random
 
 class Entity:
-    def __init__(self, x:int,y:int):
-        self.x=x
-        self.y=y
+    def __init__(self, row:int,col:int):
+        self.row=row
+        self.col=col
         
     def __eq__(self, other):
         if isinstance(other, type(self)):
@@ -15,9 +15,9 @@ class Entity:
 
 
 class Treasure(Entity):
-    # Position is [-1,-1] if treasure is outside the board
-    def __init__(self,x,y,id):
-        super().__init__(x,y)
+    # Position is [None,None] if treasure is outside the board
+    def __init__(self,row,col,id):
+        super().__init__(row,col)
         self.id = id
         
     def __eq__(self, other):
@@ -30,14 +30,14 @@ class Treasure(Entity):
 
 
 class Player(Entity):
-    def __init__(self,x,y, goal:Treasure, isAI:bool):
-        super().__init__(x,y)
+    def __init__(self,row,col, goal:Treasure, isAI:bool):
+        super().__init__(row,col)
         self.goal = goal
         self.isAI=isAI
     
     def isAtGoal(self):
-        return (self.x == self.goal.x and 
-                self.y == self.goal.y)
+        return (self.row == self.goal.row and 
+                self.col == self.goal.col)
     
     def __eq__(self, other):
         if isinstance(other, type(self)):
@@ -51,12 +51,12 @@ class Player(Entity):
 def generate_treasures(board_size,n):
     treasures = [0]*n
     for i in range(n):
-        x = random.randint(0, board_size - 1)
-        y = random.randint(0, board_size - 1)
-        while [x,y] in treasures:
-            x = random.randint(0, board_size - 1)
-            y = random.randint(0, board_size - 1)
-        treasures[i]=Treasure(x,y,i)
+        row = random.randint(0, board_size - 1)
+        col = random.randint(0, board_size - 1)
+        while [row,col] in treasures:
+            row = random.randint(0, board_size - 1)
+            col = random.randint(0, board_size - 1)
+        treasures[i]=Treasure(row,col,i)
     return treasures
 
 treasures = generate_treasures(5,2)

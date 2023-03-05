@@ -41,12 +41,12 @@ class State:
         for p in players:
             if p.isAI:
                 self.AI = p
-                self.AI_Pos = [p.x,p.y]
-                self.AI_Treasure = [p.goal.x,p.goal.y]
+                self.AI_Pos = [p.row,p.col]
+                self.AI_Treasure = [p.goal.row,p.goal.col]
             else: 
                 self.Human = p
-                self.Human_Pos = [p.x,p.y]
-                self.Human_Treasure = [p.goal.x,p.goal.y]
+                self.Human_Pos = [p.row,p.col]
+                self.Human_Treasure = [p.goal.row,p.goal.col]
         self.treasures = treasures
         self.board = np.array(board)
         self.size = (len(board),len(board[0]))
@@ -80,9 +80,9 @@ class State:
         return hash(tuple(attributes))
     
     def isAI_at_goal(self):
-         return self.AI_Pos == [self.AI.goal.x,self.AI.goal.y]
+         return self.AI_Pos == [self.AI.goal.row,self.AI.goal.col]
     def isHuman_at_goal(self):
-         return self.Human_Pos == [self.Human.goal.x,self.Human.goal.y]
+         return self.Human_Pos == [self.Human.goal.row,self.Human.goal.col]
     def childs_move(self):
         states = []
         for action in actions(self,MoveAction):
@@ -96,7 +96,7 @@ class State:
     def treasure_positions(self):
         pos = []
         for t in self.treasures:
-            pos.append([t.x,t.y])
+            pos.append([t.row,t.col])
         return pos
     #TODO: Support None positions for treasures
     def display(self):
@@ -177,25 +177,25 @@ def results(state:State,action:Union[TileShiftAction,MoveAction]):
 
         entities = new_state.players + new_state.treasures
         for entity in entities:
-            if (action.isRowShift and entity.x == action.index) or (not action.isRowShift and entity.y == action.index):
+            if (action.isRowShift and entity.row == action.index) or (not action.isRowShift and entity.col == action.index):
                 if action.isRowShift:
-                    entity.y +=action.dir
-                    if entity.y==state.size[0]:
-                        if isinstance(entity,Player): entity.y=0
-                        else: entity.y,entity.x = None,None
-                    elif entity.y == -1 and isinstance(entity,Player):
-                        entity.y=state.size[0]-1
-                    else: entity.y,entity.x = None,None
+                    entity.col +=action.dir
+                    if entity.col==state.size[0]:
+                        if isinstance(entity,Player): entity.col=0
+                        else: entity.row,entity.col = None,None
+                    elif entity.col == -1:
+                        if isinstance(entity,Player): entity.col=state.size[0]-1
+                        else: entity.row,entity.col = None,None
                 else: 
-                    entity.x +=action.dir
-                    if entity.x==state.size[0]:
+                    entity.row +=action.dir
+                    if entity.row==state.size[0]:
                         if isinstance(entity,Player):
-                            entity.x=0
-                        else: entity.y,entity.x = None,None
-                    elif entity.x == -1 and isinstance(entity,Player):
-                        entity.x=state.size[0]-1
-                    else: entity.y,entity.x = None,None
-                print(entity.x,entity.y)
+                            entity.row=0
+                        else: entity.row,entity.col = None,None
+                    elif entity.row == -1:
+                        if isinstance(entity,Player): entity.row=state.size[0]-1
+                        else: entity.row,entity.col = None,None
+                print(entity.row,entity.col)
         new_state = State(new_state.players,new_state.treasures,new_state.board,new_state.side_tile,new_state.forbidden_shift)
         
     return new_state

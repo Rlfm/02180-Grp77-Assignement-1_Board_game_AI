@@ -62,7 +62,7 @@ CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy
 Treasure_P1 = Treasure(0,3,0) # /!\ Treasures shouldn't be on moving tiles /!\ Only good for testing 
 Treasure_P2 = Treasure(4,0,1)
 AI = Player(0,0,Treasure_P2,True)
-Human = Player(4,4,Treasure_P1,False)
+Human = Player(3,4,Treasure_P1,False)
 
 side_tile =Tile(1,1,1,1) #This type of tile shouldn't exist; just for testing purposes
 #CurrentState = State(Player_1,Player_2,Treasure_P1,Treasure_P2,CurrentTiles,side_tile)
@@ -86,7 +86,7 @@ else:
 
 
 #TILE SHIFT TESTING
-shift = TileShiftAction(side_tile,False,3,-1)
+shift = TileShiftAction(side_tile,True,3,-1)
 print(shift)
 results(CurrentState,shift).display()
 tile_shifts = actions(CurrentState,TileShiftAction)
