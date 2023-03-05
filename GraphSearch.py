@@ -46,12 +46,14 @@ def ManhattanDistance(Pos1,Pos2):
 def A_star(start_state:State):
 
     start_state.size
+    """
     row_shifts = [TileShiftAction(start_state.side_tile,True,n,1) for n in range(start_state.size[0]) if n%2 !=0] + [TileShiftAction(start_state.side_tile,True,n,-1) for n in range(start_state.size[0]) if n%2 !=0]
     col_shifts = [TileShiftAction(start_state.side_tile,False,n,1) for n in range(start_state.size[0]) if n%2 !=0] + [TileShiftAction(start_state.side_tile,False,n,-1) for n in range(start_state.size[0]) if n%2 !=0]
 
     print(f"{start_state.forbidden_shift=}")
     shifts = [x for x in row_shifts + col_shifts if x != start_state.forbidden_shift]
-
+    """
+    shifts = actions(start_state,TileShiftAction,True)
     heuristic_TileShift = {i:0 for i in range(len(shifts))}
     for i,shift in enumerate(shifts):
         Potential_state = results(start_state,shift)
