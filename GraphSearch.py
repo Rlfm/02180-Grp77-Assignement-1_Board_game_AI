@@ -96,7 +96,6 @@ def A_star(start_state:State):
             for state in bfs_solution[1]:
                 Manhanthan_distances.append(ManhattanDistance(state.AI_Pos,state.AI_Treasure))
             minAI = min(Manhanthan_distances)
-        print(f"{minAI=}")
 
         if bfs_solution[0] != None:
             del heuristic_TileShift[i]

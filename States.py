@@ -151,8 +151,8 @@ class TileShiftAction:
             return hash((self.new_tile,self.isRowShift,self.index,self.dir))
         else: return hash((None,self.isRowShift,self.index,self.dir))
     def __str__(self):
-        if self.isRowShift: row_or_col='row'
-        else: row_or_col='column'
+        if self.isRowShift: row_or_col='row '
+        else: row_or_col='column '
         return ('Tile '+str(self.new_tile) +' inserted at ' +row_or_col+str(self.index)+ ' in direction ' + str(self.dir))
 
 def results(state:State,action:Union[TileShiftAction,MoveAction]):
