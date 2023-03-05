@@ -139,7 +139,9 @@ class TileShiftAction:
         if isinstance(other, type(self)):
             return self.__dict__ == other.__dict__
     def __hash__(self):
-        return hash(tuple(self.new_tiles),self.isRowShift,self.index,self.dir)
+        if self.new_tile is not None:
+            return hash(tuple(self.new_tile),self.isRowShift,self.index,self.dir)
+        else: return hash((None,self.isRowShift,self.index,self.dir))
     def __str__(self):
         if self.isRowShift: row_or_col='row'
         else: row_or_col='column'
@@ -155,8 +157,8 @@ def results(state:State,action:Union[TileShiftAction,MoveAction]):
 
         result_Pos = [pos[0] + action.delta_row, pos[1]+action.delta_col]
 
-        if action.isAI: new_state.AI_Pos=result_Pos
-        else: new_state.Human_Pos=result_Pos
+        if action.isAI: new_state.AI.row,new_state.AI.col=result_Pos[0],result_Pos[1]
+        else: new_state.Human.row,new_state.Human.col=result_Pos[0],result_Pos[1]
 
     elif isinstance(action, TileShiftAction):
         #Shift tiles
@@ -196,9 +198,19 @@ def results(state:State,action:Union[TileShiftAction,MoveAction]):
                         if isinstance(entity,Player): entity.row=state.size[0]-1
                         else: entity.row,entity.col = None,None
                 print(entity.row,entity.col)
-        new_state = State(new_state.players,new_state.treasures,new_state.board,new_state.side_tile,new_state.forbidden_shift)
-        
-    return new_state
+            elif isinstance(entity, Treasure) and entity.row == None:
+                if action.isRowShift:
+                    if action.dir == 1:
+                        entity.row,entity.col = action.index,0
+                    else:
+                        entity.row,entity.col = action.index,state.size[0]-1
+                else:
+                    if action.dir == 1:
+                        entity.row,entity.col = 0, action.index
+                    else: 
+                        entity.row,entity.col = state.size[0]-1, action.index
+
+    return State(new_state.players,new_state.treasures,new_state.board,new_state.side_tile,new_state.forbidden_shift)
 
 def actions(state:State,actionClass:type,isAI:bool = True):
 
