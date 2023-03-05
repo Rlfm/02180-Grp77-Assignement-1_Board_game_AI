@@ -242,10 +242,12 @@ def actions(state:State,actionClass:type,isAI:bool):
         for dir in dirs:
             for index in odd_indexes:
                 for isRowShift in [True,False]:
-                    action = TileShiftAction(state.side_tile,isRowShift,index,dir)
-                    applicableActions.append(action)
-        if forbidden_shift is not None and forbidden_shift in applicableActions : 
-            applicableActions.remove(forbidden_shift)
+                    if not(dir == forbidden_shift.dir and 
+                           index == forbidden_shift.index and 
+                           isRowShift == forbidden_shift.isRowShift): 
+                        for i in range(4):
+                            action = TileShiftAction(state.side_tile.rotate(i),isRowShift,index,dir)
+                            applicableActions.append(action)
 
     return applicableActions
 
