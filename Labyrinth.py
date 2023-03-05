@@ -59,7 +59,7 @@ CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy
 
 
 
-Treasure_P1 = Treasure(0,3,0) # /!\ Treasures shouldn't be on moving tiles /!\ Only good for testing 
+Treasure_P1 = Treasure(0,3,0)
 Treasure_P2 = Treasure(4,0,1)
 AI = Player(0,0,Treasure_P2,True)
 Human = Player(3,4,Treasure_P1,False)
