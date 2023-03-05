@@ -1,13 +1,4 @@
 
-
-def progress_bar(progress,total):
-
-	percent = 100 * (progress/float(total))
-	bar = "█" * int(percent) + "░" *(100-int(percent))
-	print(f"\r{bar} {percent:.2f}%",end="\r")
-	if percent >= 100:
-		print("\r" + 110*" ",end="\r")
-
 from States import *
 from GraphSearch import bfs_search
 import random
@@ -36,8 +27,6 @@ Tiles = [Corner1,Corner2,Corner3,Corner4,T_1,T_2,T_3,T_4,Straight1,Straight2]
 NB_COL_ROW = 5
 assert NB_COL_ROW%2 !=0
 	
-
-
 #-------------------------- Board generation ---------------------
 #Tiles = {0:Corner1,1:Corner2,2:Corner3,3:Corner4,4:T_1,5:T_2,6:T_3,7:T_4,8:Straight1,9:Straight2}
 Board = [[] for _ in range(NB_COL_ROW)]
@@ -59,7 +48,7 @@ CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy
 
 
 
-Treasure_P1 = Treasure(0,3,0) # /!\ Treasures shouldn't be on moving tiles /!\ Only good for testing 
+Treasure_P1 = Treasure(1,3,0) # /!\ Treasures shouldn't be on moving tiles /!\ Only good for testing 
 Treasure_P2 = Treasure(4,0,1)
 AI = Player(0,0,Treasure_P2,True)
 Human = Player(3,4,Treasure_P1,False)
@@ -84,7 +73,7 @@ else:
 	print("NO SOLUTION FOUND")
 	animate_states(Solution[1])
 
-
+print(f"{CurrentState.Human_Treasure=}")
 #TILE SHIFT TESTING
 shift = TileShiftAction(side_tile,True,3,-1)
 print(shift)

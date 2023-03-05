@@ -33,10 +33,14 @@ def bfs_search(start_state):
     return (None,expandedNodes)
 
 #TODO: Finish the manhattan heuristic calculation
-def ManhattanHeuristic(state):
-    row = state.AI_Pos[0]
-    col = state.AI_Pos[1]
-    goal_row = state.AI_Treasure[0]
-    goal_col = state.AI_Treasure[0]
-
+def ManhattanDistance(Pos1,Pos2):
+    row = Pos1[0]
+    col = Pos1[1]
+    goal_row = Pos1[0]
+    goal_col = Pos1[1]
     return abs(row-goal_row) + abs(col-goal_col)
+
+
+def A_star(start_state):
+
+    start_state.side_tile
