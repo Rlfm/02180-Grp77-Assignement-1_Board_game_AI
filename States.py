@@ -10,8 +10,6 @@ level = logging.INFO
 fmt = '[%(levelname)s] %(asctime)s - %(message)s'
 logging.basicConfig(level =level, format=fmt)
 
-
-
 class Tile:
     def __init__(self,OpenN:bool,OpenE:bool,OpenS:bool,OpenW:bool):
         self.OpenN=OpenN
@@ -208,7 +206,7 @@ def results(state:State,action:Union[TileShiftAction,MoveAction]):
                     elif entity.row == -1:
                         if isinstance(entity,Player): entity.row=state.size[0]-1
                         else: entity.row,entity.col = None,None
-                print(entity.row,entity.col)
+                #print(entity.row,entity.col)
             elif isinstance(entity, Treasure) and entity.row == None:
                 if action.isRowShift:
                     if action.dir == 1:
