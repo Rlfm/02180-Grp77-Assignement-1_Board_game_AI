@@ -218,7 +218,7 @@ def results(state:State,action:Union[TileShiftAction,MoveAction]):
 
 def actions(state:State,actionClass:type,isAI:bool = True):
 
-    #Returns all the applicable actions for a given state
+    #Returns all the applicable actions for actionClass type for a given state
     applicableActions = []
     if actionClass == MoveAction:
         if isAI: ActionsList = MoveActionsList_AI
@@ -236,7 +236,8 @@ def actions(state:State,actionClass:type,isAI:bool = True):
                 for isRowShift in [True,False]:
                     action = TileShiftAction(state.side_tile,isRowShift,index,dir)
                     applicableActions.append(action)
-        if forbidden_shift in applicableActions : applicableActions.remove(forbidden_shift)
+        if forbidden_shift is not None and forbidden_shift in applicableActions : 
+            applicableActions.remove(forbidden_shift)
 
     return applicableActions
 
