@@ -161,7 +161,7 @@ def results(state:State,action:Union[TileShiftAction,MoveAction]):
         else: new_state.Human.row,new_state.Human.col=result_Pos[0],result_Pos[1]
 
     elif isinstance(action, TileShiftAction):
-        #Shift tiles
+        # Shift tiles
         if action.isRowShift:
             line = state.board[action.index,:]
         else: line = state.board[:,action.index]
@@ -177,6 +177,7 @@ def results(state:State,action:Union[TileShiftAction,MoveAction]):
             new_state.board[action.index,:] = line
         else: new_state.board[:,action.index] = line
 
+        # Shift entities
         entities = new_state.players + new_state.treasures
         for entity in entities:
             if (action.isRowShift and entity.row == action.index) or (not action.isRowShift and entity.col == action.index):
@@ -209,6 +210,9 @@ def results(state:State,action:Union[TileShiftAction,MoveAction]):
                         entity.row,entity.col = 0, action.index
                     else: 
                         entity.row,entity.col = state.size[0]-1, action.index
+        
+        # Update the forbidden shift
+        new_state.forbidden_shift = TileShiftAction(new_state.side_tile,action.isRowShift,action.index,-action.dir)
 
     return State(new_state.players,new_state.treasures,new_state.board,new_state.side_tile,new_state.forbidden_shift)
 
