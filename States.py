@@ -4,6 +4,13 @@ import numpy as np
 from typing import Union
 from Entities import *
 import random
+import logging 
+
+level = logging.INFO	
+fmt = '[%(levelname)s] %(asctime)s - %(message)s'
+logging.basicConfig(level =level, format=fmt)
+
+
 
 class Tile:
     def __init__(self,OpenN:bool,OpenE:bool,OpenS:bool,OpenW:bool):
@@ -68,10 +75,10 @@ class State:
             return False
     def __hash__(self):
         attributes = []
-        print(self.__dict__)
+        logging.debug(self.__dict__)
         for key,var in self.__dict__.items():
-            print('next to hash:')
-            print(var)
+            logging.debug('next to hash:')
+            logging.debug(var)
             if key =='board':
                 attributes.append(hash(tuple(map(tuple,var))))
             elif key == 'forbidden_shift' or key == 'side_tile' or key=='AI' or key == 'Human':
@@ -83,9 +90,9 @@ class State:
          return self.AI_Pos == [self.AI.goal.row,self.AI.goal.col]
     def isHuman_at_goal(self):
          return self.Human_Pos == [self.Human.goal.row,self.Human.goal.col]
-    def childs_move(self):
+    def childs_move(self,isAI:bool):
         states = []
-        for action in actions(self,MoveAction):
+        for action in actions(self,MoveAction,isAI):
             states.append(results(self,action))
         return states
     def inList(self,statesList: list):
@@ -120,8 +127,11 @@ class State:
             
             if row_nb != self.size[0]-1:
                 board_display.append(f"         {(len(row)-9)*'░'}")
-
-        screen_rows = ["","","","","",f"         {(len(row)-9)*'░'}"] + board_display + [f"         {(len(row)-9)*'░'}","","","","",""]
+        
+        screen_rows = ["","","","","",f"         {(len(row)-9)*'░'}"] + board_display + [f"         {(len(row)-9)*'░'}",""]
+        
+        for char_row in range(3):
+                screen_rows.append(f"{round(len(board_display[0])/2+2)*' '} {''.join([self.side_tile.ASCII[char_row][col] for col in range(len(self.side_tile.ASCII[0]))])}")
 
         for row in screen_rows:
             print(row)
@@ -216,7 +226,7 @@ def results(state:State,action:Union[TileShiftAction,MoveAction]):
 
     return State(new_state.players,new_state.treasures,new_state.board,new_state.side_tile,new_state.forbidden_shift)
 
-def actions(state:State,actionClass:type,isAI:bool = True):
+def actions(state:State,actionClass:type,isAI:bool):
 
     #Returns all the applicable actions for actionClass type for a given state
     applicableActions = []
