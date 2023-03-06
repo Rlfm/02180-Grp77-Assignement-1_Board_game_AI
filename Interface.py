@@ -207,7 +207,7 @@ def display_state(state:State):
 
     # Blit the side tile
     if state.side_tile is not None : 
-        SIDE_TILE_SPRITE.image = TILE_IMAGES[state.side_tile.rotate(side_tile_rot)]
+        SIDE_TILE_SPRITE.image = TILE_IMAGES[state.side_tile]
         SCREEN.blit(SIDE_TILE_SPRITE.image,SIDE_TILE_SPRITE.rect)
 
     # Blit entities
@@ -252,12 +252,26 @@ def handle_arrow_click(event):
                     if rot<2: dir = 1
                     else: dir = -1
 
-                    if not(Displayed_State.forbidden_shift.isRowShift == isRowShift and
+                    if Displayed_State.forbidden_shift is None or not(Displayed_State.forbidden_shift.isRowShift == isRowShift and
                            Displayed_State.forbidden_shift.index == index*2+1 and
                            Displayed_State.forbidden_shift.dir == dir):
                         return TileShiftAction(Displayed_State.side_tile.rotate(side_tile_rot),isRowShift,index*2+1,dir)
         return None
 
+def handle_tile_click(event):
+    if event.type == pygame.MOUSEBUTTONUP:
+        mouse_pos = pygame.mouse.get_pos()
+        for i in range(ROWS):
+            for j in range(ROWS):
+                if BOARD_SPRITES[i][j].rect.collidepoint(mouse_pos):
+                    states = bfs_search_no_goal(Displayed_State,False)
+                    for s in states:
+                        if s.Human_Pos == [i,j]:
+                            print("Approachable")
+                            return True
+        return False
+                        
+                    
 ##TESTING
 
 Corner1 = Tile(0,1,1,0)
@@ -279,7 +293,7 @@ CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(T_1),copy.deepcopy(T_2),
 
 
 
-forbidden_shift = TileShiftAction(None,1,1,1)
+forbidden_shift = None
 
 Treasure_P1 = Treasure(4,0,0)
 Treasure_P2 = Treasure(3,1,1)
@@ -315,6 +329,7 @@ def main():
             tile_shift = handle_arrow_click(event)
             if tile_shift is not None:
                 test_state = results(test_state,tile_shift)
+            handle_tile_click(event)
 
         display_state(test_state)
         pygame.display.update()
