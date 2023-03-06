@@ -38,7 +38,7 @@ class Tile:
         tilesList[3] = Tile(self.OpenE,self.OpenS,self.OpenW,self.OpenN)
         return tilesList
     def rotate(self,i):
-        return self.rotationsList()[i]
+        return self.rotationsList()[i%4]
     
 class State:
     def __init__(self, players:list[Player],treasures:list[Treasure],board:list,side_tile:Tile,forbidden_shift:Tile = None):

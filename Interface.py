@@ -36,6 +36,9 @@ ROT_1_X = SCREEN_WIDTH-DASHBOARD/2-TILE_SIDE/2
 ROT_2_X = ROT_1_X+ROT_WIDTH
 ROT_Y = SIDE_TILE_Y+TILE_SIDE
 
+side_tile_rot = 0
+Human_Turn = False
+
 # Load the sprite images
 TILE_IMAGES_RAW = {
     'corner':pygame.image.load('sprites/Tile_Corner.png').convert_alpha(),
@@ -124,9 +127,9 @@ ARROW_IMAGES = [pygame.transform.scale(pygame.image.load('sprites/arrow_unavaila
                 pygame.transform.scale(pygame.image.load('sprites/arrow.png').convert_alpha(),(arrow_width,arrow_height))]
 odds = [num for num in range(ROWS) if num % 2 != 0]
 ARROW_SPRITES = [[[pygame.sprite.Sprite() for _ in range(4)] for _ in range(len(odds))] for _ in range(2)]
-for i in range(4):
-    for j in range(len(odds)):
-        for k in range(2):
+for i in range(4): #All rotations
+    for j in range(len(odds)): #All indexes
+        for k in range(2): #Available/Unavailable
             rotated_image = pygame.transform.rotate(ARROW_IMAGES[k], i*-90)
 
             sprite = pygame.sprite.Sprite()
@@ -146,7 +149,7 @@ def blitArrows(state:State):
     if forbidden_shift is not None:
         j=[i for i in range(4)]
         odds = [num for num in range(ROWS) if num % 2 != 0]
-        evens = [num for num in range(ROWS) if num % 2 == 0]
+        evens = [num for num in range(ROWS-1) if num % 2 == 0]
         if not forbidden_shift.isRowShift: 
             for even in evens:
                 j.remove(even)
@@ -191,9 +194,12 @@ def fill_board_sprites(board,tile_sprites,tile_images):
             tile_sprites[i][j].image = tile_images[board[i][j]]
     return tile_sprites
 
-
+Displayed_State = None
 def display_state(state:State):
     # Blit Board
+
+    global Displayed_State
+    Displayed_State=state
     fill_board_sprites(state.board,BOARD_SPRITES,TILE_IMAGES)
     for i in range(len(BOARD_SPRITES)):
         for j in range(len(BOARD_SPRITES[0])):
@@ -201,7 +207,7 @@ def display_state(state:State):
 
     # Blit the side tile
     if state.side_tile is not None : 
-        SIDE_TILE_SPRITE.image = TILE_IMAGES[state.side_tile]
+        SIDE_TILE_SPRITE.image = TILE_IMAGES[state.side_tile.rotate(side_tile_rot)]
         SCREEN.blit(SIDE_TILE_SPRITE.image,SIDE_TILE_SPRITE.rect)
 
     # Blit entities
@@ -211,6 +217,8 @@ def display_state(state:State):
     #Blit the arrows
     blitArrows(state)
 
+    # Blit the rot arrows
+    blitRot(Human_Turn)
     pygame.display.update()
 
 
@@ -222,11 +230,33 @@ def display_state_sequence(states:list[State]):
 SCREEN.fill((47, 60, 113)) #Background color
 
 def handle_rot_click(event):
+    global side_tile_rot
     if event.type == pygame.MOUSEBUTTONUP:
         mouse_pos = pygame.mouse.get_pos()
-        #if ROT_SPRITES[1][0].rect.collidepoint(mouse_pos):
-            
-        #elif ROT_SPRITES[1][1].rect.collidepoint(mouse_pos):
+
+        if ROT_SPRITES[1][0].rect.collidepoint(mouse_pos):
+            side_tile_rot-=1
+        elif ROT_SPRITES[1][1].rect.collidepoint(mouse_pos):
+            side_tile_rot+=1
+
+def handle_arrow_click(event):
+    global side_tile_rot
+    if event.type == pygame.MOUSEBUTTONUP:
+        mouse_pos = pygame.mouse.get_pos()
+        for rot in range(4):
+            for index in range(len(odds)):
+                if ARROW_SPRITES[1][index][rot].rect.collidepoint(mouse_pos):
+
+                    if rot%2 == 1 : isRowShift = 0
+                    else: isRowShift = 1
+                    if rot<2: dir = 1
+                    else: dir = -1
+
+                    if not(Displayed_State.forbidden_shift.isRowShift == isRowShift and
+                           Displayed_State.forbidden_shift.index == index*2+1 and
+                           Displayed_State.forbidden_shift.dir == dir):
+                        return TileShiftAction(Displayed_State.side_tile.rotate(side_tile_rot),isRowShift,index*2+1,dir)
+        return None
 
 ##TESTING
 
@@ -259,7 +289,7 @@ AI = Player(0,0,treasures[0],True)
 Human = Player(1,1,treasures[1],False)
 
 test_state = State([AI,Human],treasures,CurrentTiles,Tile(0,0,1,1),forbidden_shift)
-Solution = bfs_search(test_state)
+Solution = bfs_search(test_state,True)
 
 
 # Update the display
@@ -268,11 +298,12 @@ pygame.display.update()
 
 
 def main():
+    global test_state
     blitRot(True)
     display_state(test_state)
     time.sleep(1)
     display_state_sequence(Solution[0])
-    blitRot(False)
+    blitRot(Human_Turn)
     pygame.display.update()
 
     while True:
@@ -281,9 +312,11 @@ def main():
                 pygame.quit()
                 sys.exit()
             handle_rot_click(event)
-                
+            tile_shift = handle_arrow_click(event)
+            if tile_shift is not None:
+                test_state = results(test_state,tile_shift)
 
-
+        display_state(test_state)
         pygame.display.update()
 
 if __name__=="__main__":
