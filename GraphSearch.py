@@ -58,17 +58,18 @@ def A_star(start_state:State):
     for i,shift in enumerate(shifts):
         Potential_state = results(start_state,shift)
         
-        if bfs_search(Potential_state,True)[0] != None:
+        bfs_solution = bfs_search(Potential_state,True)
+        if bfs_solution[0] != None:
             raise ValueError(f"first move at {i}")
             return shift
         else:
             Manhanthan_distances = list()
-            for state in bfs_search(Potential_state,True)[1]:
+            for state in bfs_solution[1]:
                 Manhanthan_distances.append(ManhattanDistance(state.AI_Pos,state.AI_Treasure))
             minAI = min(Manhanthan_distances)
         print(f"{minAI=}")
 
-        if bfs_search(Potential_state,False)[0] != None:
+        if bfs_solution[0] != None:
             del heuristic_TileShift[i]
             continue   
 
