@@ -1,6 +1,12 @@
 from collections import deque
 from Entities import *
 from States import *
+import logging 
+
+level = logging.DEBUG	
+fmt = '[%(levelname)s] %(asctime)s - %(message)s'
+logging.basicConfig(level =level, format=fmt)
+
 
 def bfs_search(start_state,isAI):
 
@@ -92,10 +98,12 @@ def A_star(start_state:State):
             raise ValueError(f"first move at {i}")
             return shift
         else:
-            Manhanthan_distances = list()
+            Manhanthan_distances = dict.fromkeys(bfs_solution[1])
             for state in bfs_solution[1]:
-                Manhanthan_distances.append(ManhattanDistance(state.AI_Pos,state.AI_Treasure))
-            minAI = min(Manhanthan_distances)
+                Manhanthan_distances[state]= ManhattanDistance(state.AI_Pos,state.AI_Treasure)
+            
+            Manhanthan_distances = dict(sorted(Manhanthan_distances.items(), key=lambda item: item[1], reverse = True))	
+            minAI = min(Manhanthan_distances.values())
 
         if bfs_solution[0] != None:
             del heuristic_TileShift[i]
@@ -133,3 +141,57 @@ tile_shifts = actions(CurrentState,TileShiftAction)
 for a in tile_shifts:
 	print(a)
 """
+
+
+def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure):
+
+    Solution = bfs_search(state,isAI)
+
+    if Solution[0] != None:
+        if isAI:
+            return 1/turn
+        else:
+            return -1/turn
+
+    else:
+        if isAI:
+            Manhanthan_distances = dict.fromkeys(Solution[1])
+            for state in Solution[1]:
+                Manhanthan_distances[state]= ManhattanDistance(state.AI_Pos,state.AI_Treasure)
+            
+            Manhanthan_distances = dict(sorted(Manhanthan_distances.items(), key=lambda item: item[1]))	
+            minAI = min(Manhanthan_distances.values())
+            state = Manhanthan_distances.keys()[0]
+            logging.debug(f"{hash(state)} -> {minAI=}")
+        
+        else:
+            Manhanthan_distances = dict.fromkeys(Solution[1])
+            for state in Solution[1]:
+                Manhanthan_distances[state]= ManhattanDistance(state.Human_Pos,Target_Treasure)
+            
+            Manhanthan_distances = dict(sorted(Manhanthan_distances.items(), key=lambda item: item[1]))	
+            minHum = min(Manhanthan_distances.values())
+            state = Manhanthan_distances.keys()[0]
+            logging.debug(f"{hash(state)} -> {minHum=}")
+
+    if isAI:
+        maxEval = -10**99
+        for child in state.childs_TileShift(isAI):
+            eval = minimax(child,turn+1, alpha, beta, False)
+            maxEval = max(maxEval, eval)
+            alpha = max(alpha, eval)
+            if beta <= alpha:
+                break
+        return maxEval
+ 
+    else:
+        minEval = 10**99
+        for child in state.childs_TileShift(isAI):
+            eval = minimax(child,turn+1, alpha, beta, True)
+            minEval = min(minEval, eval)
+            beta = min(beta, eval)
+            if beta <= alpha:
+                break
+        return minEval
+ 
+ 

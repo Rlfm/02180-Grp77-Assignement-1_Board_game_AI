@@ -93,6 +93,13 @@ class State:
         for action in actions(self,MoveAction,isAI):
             states.append(results(self,action))
         return states
+    
+    def childs_TileShift(self,isAI:bool):
+        states = []
+        for action in actions(self,TileShiftAction,isAI):
+            states.append(results(self,action))
+        return states
+    
     def inList(self,statesList: list):
         for s in statesList:
               if s==self:
