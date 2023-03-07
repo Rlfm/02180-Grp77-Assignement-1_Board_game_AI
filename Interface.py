@@ -11,8 +11,14 @@ pygame.init()
 MARGIN = 50
 DASHBOARD = 200
 TILE_SIDE = 100
-ROWS = 5
-COLS = 5
+ROWS = 7
+COLS = 7
+
+BLUE = (47, 60, 113)
+RED = (230,0,0)
+GRAY = (180,180,180)
+YELLOW = (255,240,46)
+FONT = pygame.font.Font(None, 36)  # None means use the default font; 36 is the font size
 
 # Set the size of the game SCREEN
 SCREEN_WIDTH = TILE_SIDE*COLS+2*MARGIN+DASHBOARD
@@ -21,6 +27,13 @@ SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 SIDE_TILE_X = MARGIN*2+TILE_SIDE*COLS+DASHBOARD/2
 SIDE_TILE_Y = TILE_SIDE
+
+# TEXT
+
+TEXT_X_CENTER = SCREEN_WIDTH - DASHBOARD/2
+TEXT_Y_CENTER = TILE_SIDE*3
+TEXT_TURN = ["AI's turn ...", "Your turn !"]
+COLORS = [GRAY,RED]
 
 # Set the size of each tile
 tile_width = TILE_SIDE
@@ -37,7 +50,7 @@ ROT_2_X = ROT_1_X+ROT_WIDTH
 ROT_Y = SIDE_TILE_Y+TILE_SIDE
 
 side_tile_rot = 0
-Human_Turn = False
+Human_Turn = True
 
 # Load the sprite images
 TILE_IMAGES_RAW = {
@@ -148,8 +161,8 @@ def blitArrows(state:State):
     forbidden_shift = state.forbidden_shift
     if forbidden_shift is not None:
         j=[i for i in range(4)]
-        odds = [num for num in range(ROWS) if num % 2 != 0]
-        evens = [num for num in range(ROWS-1) if num % 2 == 0]
+        odds = [num for num in range(4) if num % 2 != 0]
+        evens = [num for num in range(4) if num % 2 == 0]
         if not forbidden_shift.isRowShift: 
             for even in evens:
                 j.remove(even)
@@ -194,8 +207,20 @@ def fill_board_sprites(board,tile_sprites,tile_images):
             tile_sprites[i][j].image = tile_images[board[i][j]]
     return tile_sprites
 
+def blitText():
+    text = FONT.render(TEXT_TURN[Human_Turn], True, COLORS[Human_Turn])  # True means to use anti-aliasing; (255, 255, 255) is the color
+    text_rect = text.get_rect()
+    text_rect.centerx = TEXT_X_CENTER
+    text_rect.centery = TEXT_Y_CENTER
+    SCREEN.blit(text, text_rect)
+
+
+
 Displayed_State = None
 def display_state(state:State):
+
+    SCREEN.fill(BLUE)
+
     # Blit Board
 
     global Displayed_State
@@ -219,6 +244,9 @@ def display_state(state:State):
 
     # Blit the rot arrows
     blitRot(Human_Turn)
+
+    blitText()
+
     pygame.display.update()
 
 
@@ -227,17 +255,14 @@ def display_state_sequence(states:list[State]):
         display_state(s)
         time.sleep(0.5)
 
-SCREEN.fill((47, 60, 113)) #Background color
-
 def handle_rot_click(event):
     global side_tile_rot
     if event.type == pygame.MOUSEBUTTONUP:
         mouse_pos = pygame.mouse.get_pos()
-
         if ROT_SPRITES[1][0].rect.collidepoint(mouse_pos):
-            side_tile_rot-=1
+            Displayed_State.side_tile = Displayed_State.side_tile.rotate(-1)
         elif ROT_SPRITES[1][1].rect.collidepoint(mouse_pos):
-            side_tile_rot+=1
+            Displayed_State.side_tile = Displayed_State.side_tile.rotate(-1)
 
 def handle_arrow_click(event):
     global side_tile_rot
@@ -285,17 +310,25 @@ T_4 = Tile(0,1,1,1)
 Straight1 = Tile(1,0,1,0)
 Straight2 = Tile(0,1,0,1)
 
+'''5x5
 CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(T_1),copy.deepcopy(T_2),copy.deepcopy(T_3),copy.deepcopy(T_4)],
 		[copy.deepcopy(Straight1),copy.deepcopy(T_4),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(T_2)],
 		[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(T_1),copy.deepcopy(T_3),copy.deepcopy(Straight1)],
 		[copy.deepcopy(Corner2),copy.deepcopy(Corner4),copy.deepcopy(Corner1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
 		[copy.deepcopy(Straight2),copy.deepcopy(Corner3),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],]
+'''
 
-
+CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(T_1),copy.deepcopy(T_2),copy.deepcopy(T_3),copy.deepcopy(T_4),copy.deepcopy(T_3),copy.deepcopy(T_4)],
+		[copy.deepcopy(Straight1),copy.deepcopy(T_4),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(T_2),copy.deepcopy(T_3),copy.deepcopy(T_4)],
+		[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(T_1),copy.deepcopy(T_3),copy.deepcopy(Straight1),copy.deepcopy(T_3),copy.deepcopy(T_4)],
+		[copy.deepcopy(Corner2),copy.deepcopy(T_3),copy.deepcopy(Corner1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(T_3),copy.deepcopy(T_4)],
+		[copy.deepcopy(Corner1),copy.deepcopy(T_2),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(T_3),copy.deepcopy(T_4)],
+        [copy.deepcopy(Straight1),copy.deepcopy(Corner3),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(T_3),copy.deepcopy(T_4)],
+        [copy.deepcopy(Straight1),copy.deepcopy(Corner3),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(T_3),copy.deepcopy(T_4)]]
 
 forbidden_shift = None
 
-Treasure_P1 = Treasure(4,0,0)
+Treasure_P1 = Treasure(6,0,0)
 Treasure_P2 = Treasure(3,1,1)
 treasures = [Treasure_P1,Treasure_P2]
 
@@ -312,14 +345,16 @@ pygame.display.update()
 
 
 def main():
+    global Human_Turn
     global test_state
     blitRot(True)
+    Human_Turn = False
     display_state(test_state)
     time.sleep(1)
     display_state_sequence(Solution[0])
     blitRot(Human_Turn)
     pygame.display.update()
-
+    Human_Turn=True
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
