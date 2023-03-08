@@ -50,7 +50,14 @@ ROT_2_X = ROT_1_X+ROT_WIDTH
 ROT_Y = SIDE_TILE_Y+TILE_SIDE
 
 side_tile_rot = 0
+
+global Human_Turn
+global Wait_For_TileShift
+global Wait_For_Move
+
 Human_Turn = True
+Wait_For_TileShift=False
+Wait_For_Move=False
 
 # Load the sprite images
 TILE_IMAGES_RAW = {
@@ -262,7 +269,8 @@ def handle_rot_click(event):
         if ROT_SPRITES[1][0].rect.collidepoint(mouse_pos):
             Displayed_State.side_tile = Displayed_State.side_tile.rotate(-1)
         elif ROT_SPRITES[1][1].rect.collidepoint(mouse_pos):
-            Displayed_State.side_tile = Displayed_State.side_tile.rotate(-1)
+            Displayed_State.side_tile = Displayed_State.side_tile.rotate(1)
+    display_state(Displayed_State)
 
 def handle_arrow_click(event):
     global side_tile_rot
@@ -289,14 +297,49 @@ def handle_tile_click(event):
         for i in range(ROWS):
             for j in range(ROWS):
                 if BOARD_SPRITES[i][j].rect.collidepoint(mouse_pos):
+                    print("TILE CLICKED")
                     states = bfs_search_no_goal(Displayed_State,False)
                     for s in states:
                         if s.Human_Pos == [i,j]:
-                            print("Approachable")
-                            return True
-        return False
-                        
-                    
+                            return [i,j]
+        return None
+
+def human_turn(state:State):
+    global Human_Turn
+
+    Human_Turn=True
+    display_state(state)
+    tile_shift=None
+    while tile_shift is None:
+        for event in pygame.event.get():
+            handle_rot_click(event)
+            handle_arrow_click(event)
+            handle_exit(event)
+            tile_shift = handle_arrow_click(event)
+            
+    state = results(state,tile_shift)
+    display_state(state)
+
+    tile_clicked = None
+    while tile_clicked is None:
+        for event in pygame.event.get():
+           tile_clicked = handle_tile_click(event)
+           handle_exit(event)
+    for p in state.players:
+        if not p.isAI:
+            p.row,p.col = tile_clicked[0],tile_clicked[1]
+    state = State(state.players,state.treasures,state.board,state.side_tile,state.forbidden_shift)
+    Human_Turn = False
+    display_state(state)
+    return state
+
+def handle_exit(event):
+    if event.type == pygame.QUIT:
+        pygame.quit()
+        sys.exit()       
+
+
+
 ##TESTING
 
 Corner1 = Tile(0,1,1,0)
@@ -356,17 +399,7 @@ def main():
     pygame.display.update()
     Human_Turn=True
     while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            handle_rot_click(event)
-            tile_shift = handle_arrow_click(event)
-            if tile_shift is not None:
-                test_state = results(test_state,tile_shift)
-            handle_tile_click(event)
-
-        display_state(test_state)
+        human_turn(Displayed_State)
         pygame.display.update()
 
 if __name__=="__main__":
