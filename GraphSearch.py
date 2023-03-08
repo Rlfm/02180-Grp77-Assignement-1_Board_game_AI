@@ -29,7 +29,7 @@ def bfs_search(start_state,isAI):
         
         # Check if we've found the goal state
         if node.isAI_at_goal() or node.isHuman_at_goal():
-            return  (path[node],path)
+            return  (path[node],expandedNodes)
         
         # Add child nodes to the queue if they haven't been visited
         
@@ -38,7 +38,7 @@ def bfs_search(start_state,isAI):
                 frontier.append(child)
                 path[child] = path[node] + [child]
     # If we haven't found the goal state, return None
-    return (None,path)
+    return (None,expandedNodes)
 
 def bfs_search_no_goal(start_state,isAI):
     # BFS function to return all approachable states for a given player
@@ -67,7 +67,7 @@ def bfs_search_no_goal(start_state,isAI):
                 frontier.append(child)
                 path[child] = path[node] + [child]
     # If we haven't found the goal state, return None
-    return path
+    return expandedNodes
 
 def children_after_turn(state:State,isAI:bool):
     # Lists all the possible child states from a given state after a turn
@@ -121,7 +121,7 @@ def A_star(start_state:State):
             Manhanthan_distances = list()
             for potential_treasure in [x for x in start_state.treasures if x != start_state.AI_Treasure]:
                 pos = (potential_treasure.row, potential_treasure.col)
-                for state in list(bfs_search(Potential_state,False))[1]:
+                for state in bfs_search(Potential_state,False)[1]:
                     Manhanthan_distances.append(ManhattanDistance(state.Human_Pos,pos))
             
             minP1 = min(Manhanthan_distances)
@@ -151,26 +151,43 @@ for a in tile_shifts:
 """
 
 
-def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure):
+def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure,ExpandedNodes = list()):
 
+    if turn >= 5:
+        if isAI:
+            return None
+        else:
+            return None
+        
     Solution = bfs_search(state,isAI)
 
     if Solution[0] != None:
-        if isAI:
-            return 1/turn
-        else:
-            return -1/turn
+        try:
+            if isAI:
+                print(f"SOLUTION FOR IA FOUND -> {turn}, H={1/turn}")
+                return 1/turn
+            else:
+                print(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1/turn}")
+                return -1/turn
+        except ZeroDivisionError:
+            if isAI:
+                print(f"SOLUTION FOR IA FOUND -> {turn}, H={1}")
+                return 1
+            else:
+                print(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1}")
+                return -1
 
     else:
         if isAI:
             Manhanthan_distances = dict.fromkeys(Solution[1])
             for state in Solution[1]:
                 Manhanthan_distances[state]= ManhattanDistance(state.AI_Pos,state.AI_Treasure)
-            
+
             Manhanthan_distances = dict(sorted(Manhanthan_distances.items(), key=lambda item: item[1]))	
             minAI = min(Manhanthan_distances.values())
-            state = Manhanthan_distances.keys()[0]
-            logging.debug(f"{hash(state)} -> {minAI=}")
+            state = list(Manhanthan_distances.keys())[0]
+            ExpandedNodes.append(state)
+            print(f"{hash(state)} -> {minAI=}")
         
         else:
             Manhanthan_distances = dict.fromkeys(Solution[1])
@@ -179,23 +196,38 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure):
             
             Manhanthan_distances = dict(sorted(Manhanthan_distances.items(), key=lambda item: item[1]))	
             minHum = min(Manhanthan_distances.values())
-            state = Manhanthan_distances.keys()[0]
-            logging.debug(f"{hash(state)} -> {minHum=}")
+            state = list(Manhanthan_distances.keys())[0]
+            ExpandedNodes.append(state)
+            print(f"{hash(state)} -> {minHum=}")
 
     if isAI:
         maxEval = -10**99
+
         for child in state.children_tileshift(isAI):
-            eval = minimax(child,turn+1, alpha, beta, False)
+            if child.inList(ExpandedNodes):
+                return maxEval
+            else:
+                ExpandedNodes.append(child)
+            eval = minimax(child,turn+1, alpha, beta, False,Target_Treasure)
+            if eval == None: continue
             maxEval = max(maxEval, eval)
             alpha = max(alpha, eval)
             if beta <= alpha:
                 break
+        
         return maxEval
  
     else:
         minEval = 10**99
+
         for child in state.children_tileshift(isAI):
-            eval = minimax(child,turn+1, alpha, beta, True)
+            if child.inList(ExpandedNodes):
+                return minEval
+            else:
+                ExpandedNodes.append(child)
+
+            eval = minimax(child,turn+1, alpha, beta, True,Target_Treasure)
+            if eval == None: continue
             minEval = min(minEval, eval)
             beta = min(beta, eval)
             if beta <= alpha:
