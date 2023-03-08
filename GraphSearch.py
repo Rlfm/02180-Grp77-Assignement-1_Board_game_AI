@@ -29,7 +29,7 @@ def bfs_search(start_state,isAI):
         
         # Check if we've found the goal state
         if node.isAI_at_goal() or node.isHuman_at_goal():
-            return  (path[node],expandedNodes)
+            return  (path[node],path)
         
         # Add child nodes to the queue if they haven't been visited
         
@@ -38,7 +38,7 @@ def bfs_search(start_state,isAI):
                 frontier.append(child)
                 path[child] = path[node] + [child]
     # If we haven't found the goal state, return None
-    return (None,expandedNodes)
+    return (None,path)
 
 def bfs_search_no_goal(start_state,isAI):
     # BFS function to return all approachable states for a given player
@@ -67,7 +67,7 @@ def bfs_search_no_goal(start_state,isAI):
                 frontier.append(child)
                 path[child] = path[node] + [child]
     # If we haven't found the goal state, return None
-    return expandedNodes
+    return path
 
 def children_after_turn(state:State,isAI:bool):
     # Lists all the possible child states from a given state after a turn
@@ -121,7 +121,7 @@ def A_star(start_state:State):
             Manhanthan_distances = list()
             for potential_treasure in [x for x in start_state.treasures if x != start_state.AI_Treasure]:
                 pos = (potential_treasure.row, potential_treasure.col)
-                for state in bfs_search(Potential_state,False)[1]:
+                for state in list(bfs_search(Potential_state,False))[1]:
                     Manhanthan_distances.append(ManhattanDistance(state.Human_Pos,pos))
             
             minP1 = min(Manhanthan_distances)
