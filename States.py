@@ -4,7 +4,7 @@ import numpy as np
 from typing import Union
 from Entities import *
 import random
-import logging 
+import logging
 
 level = logging.INFO	
 fmt = '[%(levelname)s] %(asctime)s - %(message)s'
@@ -88,18 +88,18 @@ class State:
          return self.AI_Pos == [self.AI.goal.row,self.AI.goal.col]
     def isHuman_at_goal(self):
          return self.Human_Pos == [self.Human.goal.row,self.Human.goal.col]
-    def childs_move(self,isAI:bool):
+    def children_move(self,isAI:bool):
         states = []
         for action in actions(self,MoveAction,isAI):
             states.append(results(self,action))
         return states
-    
-    def childs_TileShift(self,isAI:bool):
+    def children_tileshift(self,isAI:bool):
         states = []
         for action in actions(self,TileShiftAction,isAI):
             states.append(results(self,action))
         return states
     
+
     def inList(self,statesList: list):
         for s in statesList:
               if s==self:
@@ -161,6 +161,13 @@ class TileShiftAction:
         if self.isRowShift: row_or_col='row '
         else: row_or_col='column '
         return ('Tile '+str(self.new_tile) +' inserted at ' +row_or_col+str(self.index)+ ' in direction ' + str(self.dir))
+    def is_forbidden(self,state:State):
+        fs = state.forbidden_shift
+        if (self.isRowShift==fs.isRowShift and
+            self.index == fs.index and
+            self.dir == fs.dir):
+            return True
+        return False
 
 def results(state:State,action:Union[TileShiftAction,MoveAction]):
     #Returns the resulting state after applying the given action to the state
