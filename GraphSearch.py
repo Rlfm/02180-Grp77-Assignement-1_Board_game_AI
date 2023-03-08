@@ -153,7 +153,7 @@ for a in tile_shifts:
 
 def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure,ExpandedNodes = list()):
 
-    if turn >= 5:
+    if turn >= 10:
         if isAI:
             return None
         else:
