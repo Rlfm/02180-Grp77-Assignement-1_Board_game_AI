@@ -33,7 +33,7 @@ def bfs_search(start_state,isAI):
         
         # Add child nodes to the queue if they haven't been visited
         
-        for child in node.childs_move(isAI):
+        for child in node.children_move(isAI):
             if not child.inList(frontier) and not child.inList(expandedNodes):
                 frontier.append(child)
                 path[child] = path[node] + [child]
@@ -62,12 +62,20 @@ def bfs_search_no_goal(start_state,isAI):
         
         # Add child nodes to the queue if they haven't been visited
         
-        for child in node.childs_move(isAI):
+        for child in node.children_move(isAI):
             if not child.inList(frontier) and not child.inList(expandedNodes):
                 frontier.append(child)
                 path[child] = path[node] + [child]
     # If we haven't found the goal state, return None
     return expandedNodes
+
+def children_after_turn(state:State,isAI:bool):
+    # Lists all the possible child states from a given state after a turn
+    states = []
+    for child in state.children_tileshift(isAI):
+        states = states + list(bfs_search_no_goal(child,isAI))
+    return states
+
 
 #TODO: Finish the manhattan heuristic calculation
 def ManhattanDistance(Pos1,Pos2):
@@ -176,7 +184,7 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure):
 
     if isAI:
         maxEval = -10**99
-        for child in state.childs_TileShift(isAI):
+        for child in state.children_tileshift(isAI):
             eval = minimax(child,turn+1, alpha, beta, False)
             maxEval = max(maxEval, eval)
             alpha = max(alpha, eval)
@@ -186,7 +194,7 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure):
  
     else:
         minEval = 10**99
-        for child in state.childs_TileShift(isAI):
+        for child in state.children_tileshift(isAI):
             eval = minimax(child,turn+1, alpha, beta, True)
             minEval = min(minEval, eval)
             beta = min(beta, eval)
