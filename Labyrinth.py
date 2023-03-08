@@ -128,3 +128,4 @@ for a in tile_shifts:
 
 best_move = A_star(CurrentState)
 print(best_move)
+
