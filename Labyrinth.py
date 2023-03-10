@@ -127,7 +127,7 @@ side_tile =Tile(1,1,0,1) #This type of tile shouldn't exist; just for testing pu
 CurrentState = State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile,TileShiftAction(None,False,3,1))
 CurrentState.display()
 
-run_game(CurrentState)
+#run_game(CurrentState)
 
 Solution = bfs_search(CurrentState,True)
 
