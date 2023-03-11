@@ -76,12 +76,12 @@ class MoveAction:
 #Definition of moving actions
 MoveN = MoveAction("MoveN",-1,0)
 MoveS = MoveAction("MoveS",1,0)
-MoveE = MoveAction("MoveE",0,-1)
-MoveW = MoveAction("MoveW",0,1)
+MoveW = MoveAction("MoveW",0,-1)
+MoveE = MoveAction("MoveE",0,1)
 MoveActionsList_AI = [MoveN,MoveS,MoveE,MoveW]
 
 MoveN = MoveAction("MoveN",-1,0,False)
 MoveS = MoveAction("MoveS",1,0,False)
-MoveE = MoveAction("MoveE",0,-1,False)
-MoveW = MoveAction("MoveW",0,1,False)
+MoveW = MoveAction("MoveW",0,-1,False)
+MoveE = MoveAction("MoveE",0,1,False)
 MoveActionsList_Human = [MoveN,MoveS,MoveE,MoveW]
