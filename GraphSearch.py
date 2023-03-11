@@ -248,30 +248,40 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure,ExpandedNodes =
         return minEval
  
  
-def alpha_beta_pruning_test(node, depth, alpha, beta, isAI=True):
+def alpha_beta_pruning_test(node, depth, alpha, beta, expandedNodes=[], isAI=True):
     if depth == 0 or node.isAI_at_goal() or node.isHuman_at_goal():
         eval = None
-        if node.isAI_at_goal(): eval = 1
+        if node.isAI_at_goal(): 
+            print('solution found AI')
+            eval = 1
         elif node.isHuman_at_goal():eval =-1
         else: eval = 1/ManhattanDistance(node.AI_Pos,node.AI_Treasure)
         return eval, None
 
     best_value = float('-inf') if isAI else float('inf')
     best_move = None
+    children_dict = children_after_turn(node,isAI)
 
-    for child,moves in children_after_turn(node,isAI).items():
+    if len(expandedNodes)%1000<=10:
+        print(len(expandedNodes),'nodes generated')
+
+    for child,moves in children_dict.items():
         
+        if child not in expandedNodes:
+            expandedNodes.append(child)
+            value, _ = alpha_beta_pruning_test(child, depth-1, alpha, beta, expandedNodes, not isAI)
 
-        value, _ = alpha_beta_pruning(child, depth-1, alpha, beta, not isAI)
+            if isAI and value > best_value:
+                best_value, best_move = value, moves
+                alpha = max(alpha, best_value)
+            elif not isAI and value < best_value:
+                best_value, best_move = value, moves
+                beta  = min(beta, best_value)
 
-        if isAI and value > best_value:
-            best_value, best_move = value, moves
-            alpha = max(alpha, best_value)
-        elif not isAI and value < best_value:
-            best_value, best_move = value, moves
-            beta  = min(beta, best_value)
-
-        if beta <= alpha:
-            break
-
+            if beta <= alpha:
+                print("Pruning",depth)
+                break
+        else:
+            print("already expanded here")
+    
     return best_value, best_move

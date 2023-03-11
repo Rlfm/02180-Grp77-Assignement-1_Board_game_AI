@@ -90,7 +90,7 @@ for n in range(5):
 CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
 		[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
 		[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
-		[copy.deepcopy(Straight2),copy.deepcopy(Corner4),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
+		[copy.deepcopy(Corner4),copy.deepcopy(Corner4),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
 		[copy.deepcopy(Straight2),copy.deepcopy(Corner3),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],]
 
 
@@ -133,8 +133,8 @@ Solution = bfs_search(CurrentState,True)
 children = children_after_turn(CurrentState,True)
 print(len(children))
 
-if False:
-	alpha_beta = alpha_beta_pruning_test(CurrentState,3,float('-inf'),float('inf'))
+if True:
+	alpha_beta = alpha_beta_pruning_test(CurrentState,2,float('-inf'),float('inf'))
 	print(alpha_beta[0])
 	for a in alpha_beta[1]:
 		print(a)
