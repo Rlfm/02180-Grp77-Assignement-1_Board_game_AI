@@ -14,7 +14,7 @@ def bfs_search(start_state,isAI):
     expandedNodes = set()
 
     path = {start_state: [start_state]}
-    
+    action_path = {start_state:[]}
     # Use a deque to implement the FIFO queue for the BFS algorithm
     frontier = deque()
     frontier.append(start_state)
@@ -29,16 +29,19 @@ def bfs_search(start_state,isAI):
         
         # Check if we've found the goal state
         if node.isAI_at_goal() or node.isHuman_at_goal():
-            return  (path[node],path)
+            return  (path[node],path,action_path)
         
         # Add child nodes to the queue if they haven't been visited
         
-        for child in node.children_move(isAI):
+        for i in range(len(node.children_move(isAI)[0])):
+            child = node.children_move(isAI)[0][i]
+            action= node.children_move(isAI)[1][i]
             if not child.inList(frontier) and not child.inList(expandedNodes):
                 frontier.append(child)
                 path[child] = path[node] + [child]
+                action_path[child] = action_path[node] + [action]
     # If we haven't found the goal state, return None
-    return (None,path)
+    return (None,path,action_path)
 
 def bfs_search_no_goal(start_state,isAI):
     # BFS function to return all approachable states for a given player
@@ -62,7 +65,7 @@ def bfs_search_no_goal(start_state,isAI):
         
         # Add child nodes to the queue if they haven't been visited
         
-        for child in node.children_move(isAI):
+        for child in node.children_move(isAI)[0]:
             if not child.inList(frontier) and not child.inList(expandedNodes):
                 frontier.append(child)
                 path[child] = path[node] + [child]
@@ -71,10 +74,19 @@ def bfs_search_no_goal(start_state,isAI):
 
 def children_after_turn(state:State,isAI:bool):
     # Lists all the possible child states from a given state after a turn
-    states = []
-    for child in state.children_tileshift(isAI):
-        states = states + list(bfs_search_no_goal(child,isAI))
-    return states
+    states_dict = {}
+    children,action_list = state.children_tileshift(isAI)
+    for i in range(len(children)):
+        child = children[i]
+        action = action_list[i]
+        sol,path,action_path = bfs_search(child,isAI)
+        if sol is not None:
+            
+            states_dict[sol[-1]] = [action] + action_path[sol[-1]]
+        else: 
+            for state in list(path):
+                states_dict[state] = [action] + action_path[state]
+    return states_dict
 
 
 #TODO: Finish the manhattan heuristic calculation
@@ -187,7 +199,7 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure,ExpandedNodes =
             minAI = min(Manhanthan_distances.values())
             state = list(Manhanthan_distances.keys())[0]
             ExpandedNodes.append(state)
-            print(f"{hash(state)} -> {minAI=}")
+            #print(f"{hash(state)} -> {minAI=}")
         
         else:
             Manhanthan_distances = dict.fromkeys(Solution[1])
@@ -198,12 +210,13 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure,ExpandedNodes =
             minHum = min(Manhanthan_distances.values())
             state = list(Manhanthan_distances.keys())[0]
             ExpandedNodes.append(state)
-            print(f"{hash(state)} -> {minHum=}")
-
+            #print(f"{hash(state)} -> {minHum=}")
+    if len(ExpandedNodes)%1000<=10:
+        print(len(ExpandedNodes),'nodes generated')
     if isAI:
         maxEval = -10**99
 
-        for child in state.children_tileshift(isAI):
+        for child in state.children_tileshift(isAI)[0]:
             if child.inList(ExpandedNodes):
                 return maxEval
             else:
@@ -220,7 +233,7 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure,ExpandedNodes =
     else:
         minEval = 10**99
 
-        for child in state.children_tileshift(isAI):
+        for child in state.children_tileshift(isAI)[0]:
             if child.inList(ExpandedNodes):
                 return minEval
             else:
@@ -235,3 +248,30 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure,ExpandedNodes =
         return minEval
  
  
+def alpha_beta_pruning_test(node, depth, alpha, beta, isAI=True):
+    if depth == 0 or node.isAI_at_goal() or node.isHuman_at_goal():
+        eval = None
+        if node.isAI_at_goal(): eval = 1
+        elif node.isHuman_at_goal():eval =-1
+        else: eval = 1/ManhattanDistance(node.AI_Pos,node.AI_Treasure)
+        return eval, None
+
+    best_value = float('-inf') if isAI else float('inf')
+    best_move = None
+
+    for child,moves in children_after_turn(node,isAI).items():
+        
+
+        value, _ = alpha_beta_pruning(child, depth-1, alpha, beta, not isAI)
+
+        if isAI and value > best_value:
+            best_value, best_move = value, moves
+            alpha = max(alpha, best_value)
+        elif not isAI and value < best_value:
+            best_value, best_move = value, moves
+            beta  = min(beta, best_value)
+
+        if beta <= alpha:
+            break
+
+    return best_value, best_move

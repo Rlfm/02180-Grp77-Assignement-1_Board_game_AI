@@ -90,14 +90,18 @@ class State:
          return self.Human_Pos == [self.Human.goal.row,self.Human.goal.col]
     def children_move(self,isAI:bool):
         states = []
+        action_list =[]
         for action in actions(self,MoveAction,isAI):
             states.append(results(self,action))
-        return states
+            action_list.append(action)
+        return states,action_list
     def children_tileshift(self,isAI:bool):
         states = []
+        action_list = []
         for action in actions(self,TileShiftAction,isAI):
             states.append(results(self,action))
-        return states
+            action_list.append(action)
+        return states, action_list
     
 
     def inList(self,statesList: list):
@@ -237,6 +241,13 @@ def results(state:State,action:Union[TileShiftAction,MoveAction]):
         new_state.forbidden_shift = TileShiftAction(new_state.side_tile,action.isRowShift,action.index,-action.dir)
 
     return State(new_state.players,new_state.treasures,new_state.board,new_state.side_tile,new_state.forbidden_shift)
+
+def results_list(state:State,action_list):
+    resulting_state = state
+    for action in action_list:
+        resulting_state = results(resulting_state,action)
+    return resulting_state
+
 
 def actions(state:State,actionClass:type,isAI:bool):
 

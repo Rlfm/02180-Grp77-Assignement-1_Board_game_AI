@@ -90,8 +90,8 @@ for n in range(5):
 CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
 		[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
 		[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
-		[copy.deepcopy(Corner4),copy.deepcopy(Corner4),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
-		[copy.deepcopy(Straight1),copy.deepcopy(Corner3),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],]
+		[copy.deepcopy(Straight2),copy.deepcopy(Corner4),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
+		[copy.deepcopy(Straight2),copy.deepcopy(Corner3),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],]
 
 
 def random_board():
@@ -130,6 +130,15 @@ CurrentState.display()
 #run_game(CurrentState)
 
 Solution = bfs_search(CurrentState,True)
+children = children_after_turn(CurrentState,True)
+print(len(children))
+
+if False:
+	alpha_beta = alpha_beta_pruning_test(CurrentState,3,float('-inf'),float('inf'))
+	print(alpha_beta[0])
+	for a in alpha_beta[1]:
+		print(a)
+
 
 def animate_states(states):
     for state in states:
@@ -139,10 +148,12 @@ def animate_states(states):
 	
 if Solution[0] is not None:
 	print("SOLUTION FOUND WITH THE FOLLOWING STEPS:")
-	animate_states(Solution[0])
+	#animate_states(Solution[0])
+
 else: 
 	print("NO SOLUTION FOUND")
-	animate_states(list(Solution[1]))
+	#animate_states(list(Solution[1]))
+
 
 """
 Applicable_TileShifs= list(dict.fromkeys(actions(CurrentState,TileShiftAction,isAI=True))) #Avoid repetition with Straight only 2 rotation VS 4 for others
