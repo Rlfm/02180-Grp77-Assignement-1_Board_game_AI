@@ -9,12 +9,13 @@ fmt = '[%(levelname)s] %(asctime)s - %(message)s'
 logging.basicConfig(level =level, format=fmt)
 
 
-def bfs_search(state:State,isAI,Target_treasure):
+def bfs_search(state:State,isAI,Target_treasure=None):
     start_state=copy.deepcopy(state)
-    for p in start_state.players:
-        if not p.isAI:
-            p.goal = Target_treasure
-    start_state = State(start_state.players,start_state.treasures,start_state.board,start_state.side_tile,start_state.forbidden_shift)
+    if Target_treasure is not None:
+        for p in start_state.players:
+            if not p.isAI:
+                p.goal = Treasure(Target_treasure[0],Target_treasure[1],1)
+        start_state = State(start_state.players,start_state.treasures,start_state.board,start_state.side_tile,start_state.forbidden_shift)
     # Keep track of visited nodes and the path to each node
     expandedNodes = set()
 
