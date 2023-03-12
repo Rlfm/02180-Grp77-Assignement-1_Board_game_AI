@@ -188,7 +188,9 @@ def results(state:State,action:Union[TileShiftAction,MoveAction]):
 
         if action.isAI: new_state.AI.row,new_state.AI.col=result_Pos[0],result_Pos[1]
         else: new_state.Human.row,new_state.Human.col=result_Pos[0],result_Pos[1]
-
+        
+        assert new_state.Human_Treasure == state.Human_Treasure and new_state.AI_Treasure == state.AI_Treasure
+    
     elif isinstance(action, TileShiftAction):
         # Shift tiles
         if action.isRowShift:

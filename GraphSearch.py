@@ -46,6 +46,7 @@ def bfs_search(state:State,isAI,Target_treasure=None):
                 frontier.append(child)
                 path[child] = path[node] + [child]
                 action_path[child] = action_path[node] + [action]
+                
     # If we haven't found the goal state, return None
 
     return (None,path,action_path)
