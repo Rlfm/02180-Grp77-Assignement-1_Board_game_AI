@@ -24,12 +24,12 @@ def bfs_search(state:State,isAI,Target_treasure=None):
     # Use a deque to implement the FIFO queue for the BFS algorithm
     frontier = deque()
     frontier.append(start_state)
-    
+    Initial_goal = start_state.Human_Treasure
     while frontier:
 
         # Choose & remove a node n from frontier
         node = frontier.popleft()
-
+        assert node.Human_Treasure == Initial_goal
         #add n to expandedNodes
         expandedNodes.add(node)
         
@@ -46,7 +46,7 @@ def bfs_search(state:State,isAI,Target_treasure=None):
                 frontier.append(child)
                 path[child] = path[node] + [child]
                 action_path[child] = action_path[node] + [action]
-                
+
     # If we haven't found the goal state, return None
 
     return (None,path,action_path)
@@ -220,8 +220,7 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
           
             Manhanthan_distances = dict.fromkeys(Solution[1])
             for i,state in enumerate(Solution[1]):
-                print(f"{i} {state.Human_Treasure=}")
-                print(f"{i} {state.Human_Pos=}")
+                print(f"bfs {i} {state.Human_Treasure=}, {state.Human_Pos=}")
                 Manhanthan_distances[state]= ManhattanDistance(state.Human_Pos,state.Human_Treasure)
             
             Manhanthan_distances = dict(sorted(Manhanthan_distances.items(), key=lambda item: item[1]))	

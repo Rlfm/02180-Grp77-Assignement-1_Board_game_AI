@@ -246,7 +246,6 @@ def results(state:State,action:Union[TileShiftAction,MoveAction]):
         new_state.forbidden_shift = TileShiftAction(new_state.side_tile,action.isRowShift,action.index,-action.dir)
 
     return State(new_state.players,new_state.treasures,new_state.board,new_state.side_tile,new_state.forbidden_shift)
-    #return new_state
 
 def results_list(state:State,action_list):
     resulting_state = state
