@@ -56,7 +56,15 @@ def main():
 			state_seq = state_seq + bfs[1][random_state]
 		print(state_seq)
 		return state_seq
-
+	
+	def actions_to_states(state:State,actions_list):
+		states = []
+		new_state=copy.deepcopy(state)
+		for a in actions_list:
+			new_state = results(new_state,a)
+			states.append(new_state)
+		return states
+	
 	def run_game(start_state):
 		import Interface as game
 		game.init_game(start_state.size[0],start_state.size[1])
@@ -67,7 +75,14 @@ def main():
 				current_state = game.human_turn(current_state)
 			time.sleep(2)
 			if not current_state.isHuman_at_goal():
-				state_seq = AI_random_turn(current_state)
+				print('Initiated Minimax')
+				best_value,best_moves = alpha_beta_pruning_test(current_state)
+				print('best_value= ',best_value)
+				print('actions:')
+				for a in best_moves:
+					print(a)
+				state_seq = actions_to_states(current_state,best_moves)
+				#state_seq = AI_random_turn(current_state)
 				game.display_state_sequence(state_seq)
 				current_state =state_seq[-1]
 		print('GAME FINISHED')
@@ -96,27 +111,38 @@ def main():
 			[copy.deepcopy(Straight2),copy.deepcopy(Corner3),copy.deepcopy(Straight2),copy.deepcopy(Straight1),copy.deepcopy(Straight2)],]
 
 
-	def random_board():
-		StraightTiles = [random.choice([Straight1,Straight2]) for _ in range(round(NB_COL_ROW**2*0.5))]
-		CornerTiles = [random.choice([Corner1,Corner2,Corner3,Corner4]) for _ in range(round((NB_COL_ROW**2)*0.3))]
-		T_Tiles = [random.choice([T_1,T_2,T_3,T_4]) for _ in range(round((NB_COL_ROW**2)*0.2))]
+	def random_board(size):
+		
+		StraightTiles = [random.choice([Straight1,Straight2]) for _ in range(round(size**2*0.5))]
+		CornerTiles = [random.choice([Corner1,Corner2,Corner3,Corner4]) for _ in range(round((size**2)*0.3))]
+		T_Tiles = [random.choice([T_1,T_2,T_3,T_4]) for _ in range(round((size**2)*0.2))]
 
 		TilesProportion = StraightTiles + CornerTiles +  T_Tiles
-		for n in range(NB_COL_ROW**2 - len(TilesProportion)):
+		for n in range(size**2 - len(TilesProportion)):
 			TilesProportion.append(random.choice(Tiles))
 	
 		board = list()
-		for _ in range(NB_COL_ROW):
+		for _ in range(size):
 			row = list()
-			for n in range(NB_COL_ROW):
+			for n in range(size):
 				tile = random.choice(TilesProportion)
 				row.append(copy.deepcopy(tile))
 				TilesProportion.remove(tile)
 			board.append(row)
 
+		board[0][0] = copy.deepcopy(Corner1)
+		board[-1][0] = copy.deepcopy(Corner2)
+		board[-1][-1]= copy.deepcopy(Corner3)
+		board[0][-1] = copy.deepcopy(Corner4)
+		evens = [num for num in range(size) if num % 2 == 0 and num>0 and num<size-1]
+		for e in evens:
+			board[e][0] = copy.deepcopy(T_1)
+			board[-1][e] = copy.deepcopy(T_2)
+			board[e][-1] = copy.deepcopy(T_3)
+			board[0][e] = copy.deepcopy(T_4)
 		return board
 
-	#CurrentTiles = random_board()
+	#CurrentTiles = random_board(5)
 
 	Treasure_P1 = Treasure(1,3,0) 
 	Treasure_P2 = Treasure(4,0,1)
@@ -127,20 +153,21 @@ def main():
 	side_tile =Tile(1,1,0,1) #This type of tile shouldn't exist; just for testing purposes
 	#CurrentState = State(Player_1,Player_2,Treasure_P1,Treasure_P2,CurrentTiles,side_tile)
 	CurrentState = State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile,TileShiftAction(None,False,3,1))
-	CurrentState.display()
 
 	#run_game(CurrentState)
-	"""
+	CurrentState.display()
 	Solution = bfs_search(CurrentState,True)
 	children = children_after_turn(CurrentState,True)
 	print(len(children))
 
 	if True:
+		timer = time.perf_counter()
 		alpha_beta = alpha_beta_pruning_test(CurrentState,2,float('-inf'),float('inf'))
 		print(alpha_beta[0])
 		for a in alpha_beta[1]:
 			print(a)
-	"""
+		print(time.perf_counter()-timer,'seconds')
+	
 	def animate_states(states):
 		for state in states:
 			print("\033c", end="")
@@ -159,30 +186,31 @@ def main():
 	Applicable_TileShifs= list(dict.fromkeys(actions(CurrentState,TileShiftAction,isAI=True))) #Avoid repetition with Straight only 2 rotation VS 4 for others
 	TileShifts_groups = dict.fromkeys([TS.new_tile for TS in Applicable_TileShifs],[])
 	"""
+	Multiprocessing = True
+	if Multiprocessing:
+			start1 = time.perf_counter()
+			Minimax_return = dict()
 
-	start1 = time.perf_counter()
-	Minimax_return = dict()
+			plus1_states = list()
+			for TileShiftX in actions(CurrentState,TileShiftAction,isAI=True):
+				Minimax_return[TileShiftX] = "???"
+				plus1_states.append((results(CurrentState,TileShiftX),0,-10**99,10**99,False,CurrentState.Human_Treasure))
 
-	plus1_states = list()
-	for TileShiftX in actions(CurrentState,TileShiftAction,isAI=True):
-		Minimax_return[TileShiftX] = "???"
-		plus1_states.append((results(CurrentState,TileShiftX),0,-10**99,10**99,False,CurrentState.Human_Treasure))
+			with Pool() as pool:
+				resultss = pool.starmap(minimax,plus1_states)
 
-	with Pool() as pool:
-		resultss = pool.starmap(minimax,plus1_states)
+			for i,value in enumerate(resultss):
+				key = list(Minimax_return.keys())[i]
+				Minimax_return[key] = value
 
-	for i,value in enumerate(resultss):
-		key = list(Minimax_return.keys())[i]
-		Minimax_return[key] = value
+			for TileShiftX,value in Minimax_return.items():
+				print(f"{str(TileShiftX)} -> {value}")
 
-	for TileShiftX,value in Minimax_return.items():
-		print(f"{str(TileShiftX)} -> {value}")
+			stop1 = time.perf_counter()
+			print(f"Multiprocessing Time elapsed {round(stop1-start1)}s ")
 
-	stop1 = time.perf_counter()
-	print(f"Multiprocessing Time elapsed {round(stop1-start1)}s ")
-
-	print("PAUSED TO CHILL CPU")
-	time.sleep(20)
+			print("PAUSED TO CHILL CPU")
+			time.sleep(20)
 	start2 = time.perf_counter()
 	for TileShiftX in actions(CurrentState,TileShiftAction,isAI=True):
 		new_state = results(CurrentState,TileShiftX)

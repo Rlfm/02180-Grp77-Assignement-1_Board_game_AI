@@ -169,7 +169,7 @@ for a in tile_shifts:
 	print(a)
 """
 
-TURN_LIMIT = 5
+TURN_LIMIT = 2
 Pruning = True
 
 def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes = list()):
@@ -268,14 +268,20 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
         return minEval
  
  
-def alpha_beta_pruning_test(node, depth, alpha, beta, expandedNodes=[], isAI=True):
+def evaluate(state:State):
+    if state.AI_Treasure[0] is None: score_AI = 0
+    else: score_AI = 1/(1+ManhattanDistance(state.AI_Pos,state.AI_Treasure))
+    if state.Human_Treasure[0] is None: score_Human = -1
+    else: score_Human = 1/(1+ManhattanDistance(state.Human_Pos,state.Human_Treasure))
+    return score_AI + score_Human
+
+
+def alpha_beta_pruning_test(node:State, depth=2, alpha=float('-inf'), beta=float('inf'), expandedNodes=[], isAI=True):
     if depth == 0 or node.isAI_at_goal() or node.isHuman_at_goal():
         eval = None
-        if node.isAI_at_goal(): 
-            print('solution found AI')
-            eval = 1
-        elif node.isHuman_at_goal():eval =-1
-        else: eval = 1/ManhattanDistance(node.AI_Pos,node.AI_Treasure)
+        if node.isAI_at_goal(): eval = 1
+        elif node.isHuman_at_goal(): eval =-1
+        else: eval = evaluate(node)
         return eval, None
 
     best_value = float('-inf') if isAI else float('inf')
@@ -299,9 +305,6 @@ def alpha_beta_pruning_test(node, depth, alpha, beta, expandedNodes=[], isAI=Tru
                 beta  = min(beta, best_value)
 
             if beta <= alpha:
-                print("Pruning",depth)
                 break
-        else:
-            print("already expanded here")
     
     return best_value, best_move

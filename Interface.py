@@ -221,7 +221,6 @@ def fill_board_sprites(board,tile_sprites,tile_images):
     w,h = len(board),len(board[0])
     for i in range(w):
         for j in range(h):
-            print(i,j,'filled')
             tile_sprites[i][j].image = tile_images[board[i][j]]
     return tile_sprites
 
