@@ -2,6 +2,7 @@ from collections import deque
 from Entities import *
 from States import *
 import logging 
+import copy
 
 level = logging.DEBUG	
 fmt = '[%(levelname)s] %(asctime)s - %(message)s'
@@ -9,6 +10,7 @@ logging.basicConfig(level =level, format=fmt)
 
 
 def bfs_search(start_state:State,isAI,Target_treasure):
+    start_state = copy.deepcopy(start_state)
     start_state.Human_Treasure = Target_treasure
     # Keep track of visited nodes and the path to each node
     expandedNodes = set()
