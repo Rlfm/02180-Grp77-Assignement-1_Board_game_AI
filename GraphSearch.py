@@ -170,37 +170,39 @@ for a in tile_shifts:
 """
 
 TURN_LIMIT = 5
+Pruning = True
+
 def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes = list()):
-    
+    global TURN_LIMIT
+    global Pruning
     state.Human_Treasure = Target_Treasure
-    print(f"{state.Human_Treasure=} VS {Target_Treasure}")
 
     Solution = bfs_search(state,isAI,state.Human_Treasure)
 
     if Solution[0] != None:
         try:
             if isAI:
-                print(f"SOLUTION FOR IA FOUND -> {turn}, H={1/turn}")
+                logging.debug(f"SOLUTION FOR IA FOUND -> {turn}, H={1/turn}")
                 return 1/turn
             else:
-                print(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1/turn}")
+                logging.debug(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1/turn}")
                 return -1/turn
         except ZeroDivisionError:
             if isAI:
-                print(f"SOLUTION FOR IA FOUND -> {turn}, H={1}")
+                logging.debug(f"SOLUTION FOR IA FOUND -> {turn}, H={1}")
                 return 1
             else:
-                print(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1}")
+                logging.debug(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1}")
                 return -1
     
     elif turn >= TURN_LIMIT:
 
             try:                    
-                eval=  1/(ManhattanDistance(state.AI_Pos,state.AI_Treasure)*turn) +  1/(ManhattanDistance(state.Human_Pos,Target_Treasure)* turn)
+                eval=  1/(ManhattanDistance(state.AI_Pos,state.AI_Treasure)*turn) -  1/(ManhattanDistance(state.Human_Pos,Target_Treasure)* turn)
             except ZeroDivisionError: # In case tile out of the board 
                 eval = None
 
-            print(f"{state.Human_Pos=} VS {state.Human_Treasure=}, {state.AI_Pos=} VS {state.AI_Treasure=} -> {eval=}")
+            #print(f"{state.Human_Pos=} VS {state.Human_Treasure=}, {state.AI_Pos=} VS {state.AI_Treasure=} -> {eval=}")
             return eval 
 
     
@@ -220,7 +222,6 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
           
             Manhanthan_distances = dict.fromkeys(Solution[1])
             for i,state in enumerate(Solution[1]):
-                print(f"bfs {i} {state.Human_Treasure=}, {state.Human_Pos=}")
                 Manhanthan_distances[state]= ManhattanDistance(state.Human_Pos,state.Human_Treasure)
             
             Manhanthan_distances = dict(sorted(Manhanthan_distances.items(), key=lambda item: item[1]))	
@@ -230,13 +231,12 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
             #print(f"{hash(state)} -> {minHum=}")
 
     if len(ExpandedNodes)%1000 <= 1:
-        print(len(ExpandedNodes),'nodes generated')
+        logging.debug(len(ExpandedNodes),'nodes generated')
     if isAI:
         maxEval = -10**99
 
         for child in state.children_tileshift(isAI)[0]:
             if child.inList(ExpandedNodes):
-                #print(f"already explored node: {hash(child)}, {state.side_tile} / {child.side_tile} / {turn=}")
                 return maxEval
             else:
                 ExpandedNodes.append(child)
@@ -245,7 +245,7 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
             if eval == None:continue
             maxEval = max(maxEval, eval)
             alpha = max(alpha, eval)
-            if beta <= alpha:
+            if beta <= alpha and Pruning:
                 break
         
         return maxEval
@@ -255,7 +255,6 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
 
         for child in state.children_tileshift(isAI)[0]:
             if child.inList(ExpandedNodes):
-                #print(f"already explored node: {hash(child)}, {state.side_tile} / {child.side_tile} /  {turn=}")
                 return minEval
             else:
                 ExpandedNodes.append(child)
@@ -264,7 +263,7 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
             if eval == None:continue
             minEval = min(minEval, eval)
             beta = min(beta, eval)
-            if beta <= alpha:
+            if beta <= alpha and Pruning:
                 break
         return minEval
  
