@@ -95,12 +95,14 @@ class State:
             states.append(results(self,action))
             action_list.append(action)
         return states,action_list
+    
     def children_tileshift(self,isAI:bool):
         states = []
         action_list = []
         for action in actions(self,TileShiftAction,isAI):
             states.append(results(self,action))
             action_list.append(action)
+ 
         return states, action_list
     
 
@@ -171,7 +173,8 @@ class TileShiftAction:
             self.index == fs.index and
             self.dir == fs.dir):
             return True
-        return False
+        else:
+            return False
 
 def results(state:State,action:Union[TileShiftAction,MoveAction]):
     #Returns the resulting state after applying the given action to the state
@@ -241,6 +244,7 @@ def results(state:State,action:Union[TileShiftAction,MoveAction]):
         new_state.forbidden_shift = TileShiftAction(new_state.side_tile,action.isRowShift,action.index,-action.dir)
 
     return State(new_state.players,new_state.treasures,new_state.board,new_state.side_tile,new_state.forbidden_shift)
+    #return new_state
 
 def results_list(state:State,action_list):
     resulting_state = state
@@ -271,9 +275,12 @@ def actions(state:State,actionClass:type,isAI:bool):
                            index == forbidden_shift.index and 
                            isRowShift == forbidden_shift.isRowShift): 
                         for i in range(4):
-                            action = TileShiftAction(state.side_tile.rotate(i),isRowShift,index,dir)
-                            applicableActions.append(action)
-
+                            if str(state.side_tile) == "1010" or str(state.side_tile) == "0101":
+                                action = TileShiftAction(state.side_tile.rotate(i),isRowShift,index,dir)
+                                applicableActions.append(action)
+                            else:
+                                action = TileShiftAction(state.side_tile.rotate(i),isRowShift,index,dir)
+                                applicableActions.append(action)
     return applicableActions
 
 def isApplicable(state:State,action:MoveAction):

@@ -87,11 +87,11 @@ for n in range(5):
 
 ##BFS TESTING
 
-CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
-		[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
-		[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
+CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight2),copy.deepcopy(Straight1),copy.deepcopy(Straight2)],
+		[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight2),copy.deepcopy(Straight1)],
+		[copy.deepcopy(Straight1),copy.deepcopy(Straight2),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
 		[copy.deepcopy(Corner4),copy.deepcopy(Corner4),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
-		[copy.deepcopy(Straight2),copy.deepcopy(Corner3),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],]
+		[copy.deepcopy(Straight2),copy.deepcopy(Corner3),copy.deepcopy(Straight2),copy.deepcopy(Straight1),copy.deepcopy(Straight2)],]
 
 
 def random_board():
@@ -117,8 +117,8 @@ def random_board():
 #CurrentTiles = random_board()
 
 Treasure_P1 = Treasure(1,3,0) 
-Treasure_P1 = Treasure(1,3,0) # /!\ Treasures shouldn't be on moving tiles /!\ Only good for testing 
 Treasure_P2 = Treasure(4,0,1)
+
 AI = Player(0,0,Treasure_P2,True)
 Human = Player(3,4,Treasure_P1,False)
 
@@ -128,7 +128,7 @@ CurrentState = State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile
 CurrentState.display()
 
 #run_game(CurrentState)
-
+"""
 Solution = bfs_search(CurrentState,True)
 children = children_after_turn(CurrentState,True)
 print(len(children))
@@ -138,14 +138,14 @@ if True:
 	print(alpha_beta[0])
 	for a in alpha_beta[1]:
 		print(a)
-
-
+"""
 def animate_states(states):
     for state in states:
         print("\033c", end="")
         state.display()
         time.sleep(0.2)
 	
+"""
 if Solution[0] is not None:
 	print("SOLUTION FOUND WITH THE FOLLOWING STEPS:")
 	#animate_states(Solution[0])
@@ -154,8 +154,6 @@ else:
 	print("NO SOLUTION FOUND")
 	#animate_states(list(Solution[1]))
 
-
-"""
 Applicable_TileShifs= list(dict.fromkeys(actions(CurrentState,TileShiftAction,isAI=True))) #Avoid repetition with Straight only 2 rotation VS 4 for others
 TileShifts_groups = dict.fromkeys([TS.new_tile for TS in Applicable_TileShifs],[])
 """
@@ -164,7 +162,7 @@ start = time.perf_counter()
 Minimax_return = dict()
 for TileShiftX in actions(CurrentState,TileShiftAction,isAI=True):
 	state = results(CurrentState,TileShiftX)
-	Minimax_return[TileShiftX] = minimax(state,turn=0,alpha=-10**99,beta=10**99,isAI=True,Target_Treasure=CurrentState.Human_Treasure)
+	Minimax_return[TileShiftX] = minimax(state,turn=0,alpha=-10**99,beta=10**99,isAI=True,Target_Treasure= CurrentState.Human_Treasure)
 
 for TileShiftX,value in Minimax_return.items():
 	print(f"{str(TileShiftX)} -> {value}")

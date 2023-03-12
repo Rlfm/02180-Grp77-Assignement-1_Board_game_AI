@@ -4,7 +4,8 @@ class Entity:
     def __init__(self, row:int,col:int):
         self.row=row
         self.col=col
-        
+        self.pos = (row,col)
+
     def __eq__(self, other):
         if isinstance(other, type(self)):
             return self.__dict__ == other.__dict__
@@ -19,6 +20,7 @@ class Treasure(Entity):
     def __init__(self,row,col,id):
         super().__init__(row,col)
         self.id = id
+        self.pos = (row,col)
         
     def __eq__(self, other):
         if isinstance(other, type(self)):
