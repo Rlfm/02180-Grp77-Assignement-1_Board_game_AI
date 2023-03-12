@@ -274,11 +274,12 @@ def actions(state:State,actionClass:type,isAI:bool):
                     if forbidden_shift is None or not(dir == forbidden_shift.dir and 
                            index == forbidden_shift.index and 
                            isRowShift == forbidden_shift.isRowShift): 
-                        for i in range(4):
-                            if str(state.side_tile) == "1010" or str(state.side_tile) == "0101":
+                        if str(state.side_tile) == "1010" or str(state.side_tile) == "0101":
+                            for i in range(2):
                                 action = TileShiftAction(state.side_tile.rotate(i),isRowShift,index,dir)
                                 applicableActions.append(action)
-                            else:
+                        else:
+                            for i in range(4):
                                 action = TileShiftAction(state.side_tile.rotate(i),isRowShift,index,dir)
                                 applicableActions.append(action)
     return applicableActions
