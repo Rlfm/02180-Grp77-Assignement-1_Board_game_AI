@@ -200,7 +200,7 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
             try:                    
                 eval=  1/(ManhattanDistance(state.AI_Pos,state.AI_Treasure)*turn) -  1/(ManhattanDistance(state.Human_Pos,Target_Treasure)* turn)
             except ZeroDivisionError: # In case tile out of the board 
-                eval = None
+                eval = evaluate(state)
 
             #print(f"{state.Human_Pos=} VS {state.Human_Treasure=}, {state.AI_Pos=} VS {state.AI_Treasure=} -> {eval=}")
             return eval 
@@ -242,7 +242,7 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
                 ExpandedNodes.append(child)
             
             eval = minimax(child,turn+1, alpha, beta, False,state.Human_Treasure)
-            if eval == None:continue
+            if eval == None:pass
             maxEval = max(maxEval, eval)
             alpha = max(alpha, eval)
             if beta <= alpha and Pruning:
@@ -288,7 +288,7 @@ def alpha_beta_pruning_test(node:State, depth=2, alpha=float('-inf'), beta=float
     best_move = None
     children_dict = children_after_turn(node,isAI)
 
-    if len(expandedNodes)%1000<=10:
+    if len(expandedNodes)%100<=10:
         print(len(expandedNodes),'nodes generated')
 
     for child,moves in children_dict.items():
