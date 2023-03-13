@@ -13,17 +13,27 @@ MARGIN = 50
 DASHBOARD = 200
 TILE_SIDE = 100
 BLUE = (47, 60, 113)
+LIGHT_BLUE =(0,0,255)
 RED = (230,0,0)
 GRAY = (180,180,180)
 YELLOW = (255,240,46)
-FONT = pygame.font.Font(None, 36)  # None means use the default font; 36 is the font size
+GREEN = (0,255,0)
+FONT_TURN = pygame.font.Font(None, 36)  # None means use the default font; 36 is the font size
+FONT_INSTRUCTIONS = pygame.font.Font(None,28)
+FONT_AGAIN = pygame.font.Font(None,36)
+FONT_TREASURE = pygame.font.Font(None,30)
+WaitingShift=False
+WaitingMove = False
+pygame.display.set_caption("LABYRINTH")
 
 def init_game(rows,cols):
     global ROWS
     global COLS
     global SCREEN_WIDTH, SCREEN_HEIGHT,SCREEN, SIDE_TILE_X,SIDE_TILE_Y,TEXT_X_CENTER,TEXT_Y_CENTER
     global tile_height,tile_width, arrow_height,arrow_width, ROT_WIDTH,ROT_HEIGHT,ROT_1_X,ROT_2_X,ROT_Y
-    global TEXT_TURN,COLORS, TILE_IMAGES, odds,side_tile_rot,AUDIO_DICT
+    global TEXT_TURN,COLORS, TILE_IMAGES, odds,side_tile_rot,AUDIO_DICT,TEXT_INSTRUCTIONS
+    global INSTRUCT_X_CENTER,INSTRUCT_Y_CENTER, TEXT_TREASURE,GOAL_TEXT_X_CENTER,GOAL_TEXT_Y_CENTER
+    global GOAL_X_CENTER,GOAL_Y_CENTER, AGAIN_SPRITE
     ROWS = rows
     COLS = cols
 
@@ -32,13 +42,17 @@ def init_game(rows,cols):
     SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
     
-    SIDE_TILE_X = MARGIN*2+TILE_SIDE*COLS+DASHBOARD/2
-    SIDE_TILE_Y = TILE_SIDE
+
 
     TEXT_X_CENTER = SCREEN_WIDTH - DASHBOARD/2
-    TEXT_Y_CENTER = TILE_SIDE*3
+    TEXT_Y_CENTER = TILE_SIDE/2
 
+    INSTRUCT_X_CENTER = SCREEN_WIDTH - DASHBOARD/2
+    INSTRUCT_Y_CENTER = TEXT_Y_CENTER+TILE_SIDE/3
 
+    SIDE_TILE_X = MARGIN*2+TILE_SIDE*COLS+DASHBOARD/2
+    SIDE_TILE_Y = INSTRUCT_Y_CENTER+2*TILE_SIDE/3
+    
     tile_width = TILE_SIDE
     tile_height = TILE_SIDE
 
@@ -50,11 +64,19 @@ def init_game(rows,cols):
 
     ROT_1_X = SCREEN_WIDTH-DASHBOARD/2-TILE_SIDE/2
     ROT_2_X = ROT_1_X+ROT_WIDTH
-    ROT_Y = SIDE_TILE_Y+TILE_SIDE
+    ROT_Y = SIDE_TILE_Y+TILE_SIDE/1.5
 
+    GOAL_X_CENTER = SCREEN_WIDTH-DASHBOARD/2
+    GOAL_Y_CENTER = TILE_SIDE*4
+    GOAL_TEXT_X_CENTER = SCREEN_WIDTH-DASHBOARD/2
+    GOAL_TEXT_Y_CENTER = GOAL_Y_CENTER-TILE_SIDE/2
 
-    TEXT_TURN = ["AI's turn ...", "Your turn !"]
-    COLORS = [GRAY,RED]
+    AGAIN_X_CENTER = SCREEN_WIDTH-DASHBOARD/2
+    AGAIN_Y_CENTER = GOAL_Y_CENTER+TILE_SIDE
+    TEXT_TURN = ["AI's turn ...", "Your turn !", "AI Won :(","You won !!"]
+    TEXT_INSTRUCTIONS =["Slide the tile",'Move your pawn']
+    TEXT_TREASURE = "Your  treasure:"
+    COLORS = [GRAY,LIGHT_BLUE,RED,GREEN]
 
     # Set the size of each tile
 
@@ -160,7 +182,12 @@ def init_game(rows,cols):
             sprite.image = pygame.transform.flip(ROT_IMAGES[i], not j, False)
             sprite.rect = pygame.Rect(ROT_1_X*(not j) + ROT_2_X*j,ROT_Y,ROT_WIDTH,ROT_HEIGHT)
             ROT_SPRITES[i][j]=sprite
-
+    AGAIN_IMAGE = pygame.transform.scale(pygame.image.load('sprites/play_again.png').convert_alpha(),(200,100))
+    sprite = pygame.sprite.Sprite()
+    sprite.image = AGAIN_IMAGE
+    sprite.rect = pygame.Rect(AGAIN_X_CENTER,AGAIN_Y_CENTER,200,100)
+    sprite.rect.center = (AGAIN_X_CENTER,AGAIN_Y_CENTER)
+    AGAIN_SPRITE = sprite
     
     AUDIO_DICT ={'AIready' : pygame.mixer.Sound('audio/AIready.wav'),
                  'HumanLost': pygame.mixer.Sound('audio/HumanLost.wav'),
@@ -178,6 +205,15 @@ def blitTreasures(treasures:list[Treasure]):
         else: 
             sprite.rect.center = (MARGIN+TILE_SIDE*(treasure.col+0.5),MARGIN+TILE_SIDE*(treasure.row+0.5))
         SCREEN.blit(sprite.image,sprite.rect)
+        if Displayed_State.Human.goal==treasure:
+            sprite.rect.center = (GOAL_X_CENTER,GOAL_Y_CENTER)
+            image = pygame.transform.scale(sprite.image,(TILE_SIDE/2,TILE_SIDE/2))
+            SCREEN.blit(image,sprite.rect)
+            text = FONT_TURN.render(TEXT_TREASURE,True,YELLOW)  # True means to use anti-aliasing; (255, 255, 255) is the color
+            text_rect = text.get_rect()
+            text_rect.centerx = GOAL_TEXT_X_CENTER
+            text_rect.centery = GOAL_TEXT_Y_CENTER
+            SCREEN.blit(text, text_rect)            
 
 def blitPlayers(players:list[Player]):
     for player in players:
@@ -233,16 +269,25 @@ def fill_board_sprites(board,tile_sprites,tile_images):
     return tile_sprites
 
 def blitText():
-    text = FONT.render(TEXT_TURN[Human_Turn], True, COLORS[Human_Turn])  # True means to use anti-aliasing; (255, 255, 255) is the color
+    text = FONT_TURN.render(TEXT_TURN[Human_Turn], True, COLORS[Human_Turn])  # True means to use anti-aliasing; (255, 255, 255) is the color
     text_rect = text.get_rect()
     text_rect.centerx = TEXT_X_CENTER
     text_rect.centery = TEXT_Y_CENTER
+    SCREEN.blit(text, text_rect)
+
+def blitInstructions(instruction):
+    text = FONT_INSTRUCTIONS.render(TEXT_INSTRUCTIONS[instruction],True,GRAY)
+    text_rect = text.get_rect()
+    text_rect.centerx = INSTRUCT_X_CENTER
+    text_rect.centery = INSTRUCT_Y_CENTER
     SCREEN.blit(text, text_rect)
 
 
 
 Displayed_State = None
 def display_state(state:State):
+    global WaitingMove
+    global WaitingShift
 
     SCREEN.fill(BLUE)
 
@@ -271,6 +316,10 @@ def display_state(state:State):
     blitRot(Human_Turn)
 
     blitText()
+    if WaitingShift:
+        blitInstructions(0)
+    elif WaitingMove:
+        blitInstructions(1)
 
     pygame.display.update()
 
@@ -325,12 +374,22 @@ def handle_tile_click(event):
                             return [i,j]
         return None
 
+def handle_again_click(event):
+    if event.type == pygame.MOUSEBUTTONUP:
+        mouse_pos = pygame.mouse.get_pos()
+        if AGAIN_SPRITE.rect.collidepoint(mouse_pos):
+            return True
+    return False
+
+
 def human_turn(state:State):
     global Human_Turn
-
+    global WaitingShift
+    global WaitingMove
     Human_Turn=True
     AUDIO_DICT['HumanTurn'].play()
     display_state(state)
+    WaitingShift=True
     tile_shift=None
     while tile_shift is None:
         for event in pygame.event.get():
@@ -338,11 +397,13 @@ def human_turn(state:State):
             handle_arrow_click(event)
             handle_exit(event)
             tile_shift = handle_arrow_click(event)
-            
+    WaitingShift=False
+    WaitingMove=True
     state = results(state,tile_shift)
     AUDIO_DICT['TileShift'].play()
     display_state(state)
-
+    blitInstructions(1)
+    pygame.display.update()
     tile_clicked = None
     while tile_clicked is None:
         for event in pygame.event.get():
@@ -351,11 +412,22 @@ def human_turn(state:State):
     for p in state.players:
         if not p.isAI:
             p.row,p.col = tile_clicked[0],tile_clicked[1]
+    WaitingMove=False
     AUDIO_DICT['PlayerMove'].play()
     state = State(state.players,state.treasures,state.board,state.side_tile,state.forbidden_shift)
     Human_Turn = False
     display_state(state)
     return state
+
+def game_ended():
+    SCREEN.blit(AGAIN_SPRITE.image,AGAIN_SPRITE.rect)
+    pygame.display.update()
+    again = False
+    while not again:
+        for event in pygame.event.get():
+            handle_exit(event)
+            again = handle_again_click(event)
+    
 
 def handle_exit(event):
     if event.type == pygame.QUIT:

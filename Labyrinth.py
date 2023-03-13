@@ -7,6 +7,7 @@ from termcolor import colored
 import copy
 import time
 from multiprocessing import Pool
+import threading
 
 import logging  
 level = logging.DEBUG	
@@ -66,34 +67,61 @@ def main():
 		return states
 	
 	def run_game(start_state):
+		global Keep
 		import Interface as game
 		game.init_game(start_state.size[0],start_state.size[1])
-		game.display_state(start_state)
-		current_state = start_state
-		while not(current_state.isAI_at_goal() or current_state.isHuman_at_goal()):
-			if not current_state.isAI_at_goal():
-				current_state = game.human_turn(current_state)
-			time.sleep(2)
-			if not current_state.isHuman_at_goal():
-				print('Initiated Minimax')
-				best_value,best_moves = alpha_beta_pruning_test(current_state)
-				game.AUDIO_DICT['AIready'].play()
-				time.sleep(1)
-				print('best_value= ',best_value)
-				print('actions:')
-				for a in best_moves:
-					print(a)
-				state_seq = actions_to_states(current_state,best_moves)
-				#state_seq = AI_random_turn(current_state)
-				game.display_state_sequence(state_seq)
-				current_state =state_seq[-1]
-		if current_state.isHuman_at_goal():
-			print('HUMAN WON')
-			game.AUDIO_DICT['HumanWon'].play()
-		else:
-			print('AI WON')
-			game.AUDIO_DICT['HumanLost'].play()
-		time.sleep(4)
+		playing = True
+		while playing:
+
+			CurrentTiles = random_board(5)
+			Treasure_P1 = Treasure(4,4,0) 
+			Treasure_P2 = Treasure(4,0,1)
+			AI = Player(0,4,Treasure_P2,True)
+			Human = Player(0,0,Treasure_P1,False)
+			start_state= State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile,TileShiftAction(None,False,3,1))
+
+			game.display_state(start_state)
+			clock = game.pygame.time.Clock()
+			current_state = start_state
+			Keep =False
+			def keep_alive():
+				global Keep
+				while Keep:
+					game.pygame.event.pump()
+					clock.tick(30)
+			thread = threading.Thread(target=keep_alive, args=())
+			thread.start()
+
+			while not(current_state.isAI_at_goal() or current_state.isHuman_at_goal()):
+				if not current_state.isAI_at_goal():
+					current_state = game.human_turn(current_state)
+				time.sleep(2)
+				if not current_state.isHuman_at_goal():
+					print('Initiated Minimax')
+					Keep=True
+					timer = time.perf_counter()
+					best_value,best_moves=alpha_beta_pruning_test(current_state,depth=1, alpha=float('-inf'), beta=float('inf'), expandedNodes=[])
+					print('search time =', time.perf_counter()-timer)
+					Keep=False
+					game.AUDIO_DICT['AIready'].play()
+					time.sleep(1)
+					print('best_value= ',best_value)
+					print('actions:')
+					for a in best_moves:
+						print(a)
+					state_seq = actions_to_states(current_state,best_moves)
+					#state_seq = AI_random_turn(current_state)
+					game.display_state_sequence(state_seq)
+					current_state =state_seq[-1]
+			if current_state.isHuman_at_goal():
+				print('HUMAN WON')
+				game.AUDIO_DICT['HumanWon'].play()
+			else:
+				print('AI WON')
+				game.AUDIO_DICT['HumanLost'].play()
+			game.game_ended()
+			
+
 
 
 
