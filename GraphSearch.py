@@ -273,7 +273,7 @@ def evaluate(state:State):
     else: score_AI = 1/(1+ManhattanDistance(state.AI_Pos,state.AI_Treasure))
     if state.Human_Treasure[0] is None: score_Human = -1
     else: score_Human = 1/(1+ManhattanDistance(state.Human_Pos,state.Human_Treasure))
-    return score_AI + score_Human
+    return score_AI - score_Human
 
 
 def alpha_beta_pruning_test(node:State, depth=2, alpha=float('-inf'), beta=float('inf'), expandedNodes=[], isAI=True):
@@ -296,6 +296,10 @@ def alpha_beta_pruning_test(node:State, depth=2, alpha=float('-inf'), beta=float
         if child not in expandedNodes:
             expandedNodes.append(child)
             value, _ = alpha_beta_pruning_test(child, depth-1, alpha, beta, expandedNodes, not isAI)
+            
+            if value == 1:
+                best_value, best_move = value, moves
+                break
 
             if isAI and value > best_value:
                 best_value, best_move = value, moves

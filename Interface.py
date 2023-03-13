@@ -23,7 +23,7 @@ def init_game(rows,cols):
     global COLS
     global SCREEN_WIDTH, SCREEN_HEIGHT,SCREEN, SIDE_TILE_X,SIDE_TILE_Y,TEXT_X_CENTER,TEXT_Y_CENTER
     global tile_height,tile_width, arrow_height,arrow_width, ROT_WIDTH,ROT_HEIGHT,ROT_1_X,ROT_2_X,ROT_Y
-    global TEXT_TURN,COLORS, TILE_IMAGES, odds,side_tile_rot
+    global TEXT_TURN,COLORS, TILE_IMAGES, odds,side_tile_rot,AUDIO_DICT
     ROWS = rows
     COLS = cols
 
@@ -161,6 +161,14 @@ def init_game(rows,cols):
             sprite.rect = pygame.Rect(ROT_1_X*(not j) + ROT_2_X*j,ROT_Y,ROT_WIDTH,ROT_HEIGHT)
             ROT_SPRITES[i][j]=sprite
 
+    
+    AUDIO_DICT ={'AIready' : pygame.mixer.Sound('audio/AIready.wav'),
+                 'HumanLost': pygame.mixer.Sound('audio/HumanLost.wav'),
+                 'HumanTurn': pygame.mixer.Sound('audio/HumanTurn.wav'),
+                 'HumanWon': pygame.mixer.Sound('audio/HumanWon.wav'),
+                 'PlayerMove': pygame.mixer.Sound('audio/PlayerMove.wav'),
+                 'TileShift': pygame.mixer.Sound('audio/TileShift.wav')}
+
 
 def blitTreasures(treasures:list[Treasure]):
     for treasure in treasures:
@@ -268,9 +276,13 @@ def display_state(state:State):
 
 
 def display_state_sequence(states:list[State]):
-    for s in states:
+    display_state(states[0])
+    AUDIO_DICT['TileShift'].play()
+    time.sleep(1.5)
+    for s in states[1:]:
         display_state(s)
-        time.sleep(0.5)
+        AUDIO_DICT['PlayerMove'].play()
+        time.sleep(0.7)
 
 def handle_rot_click(event):
     global side_tile_rot
@@ -317,6 +329,7 @@ def human_turn(state:State):
     global Human_Turn
 
     Human_Turn=True
+    AUDIO_DICT['HumanTurn'].play()
     display_state(state)
     tile_shift=None
     while tile_shift is None:
@@ -327,6 +340,7 @@ def human_turn(state:State):
             tile_shift = handle_arrow_click(event)
             
     state = results(state,tile_shift)
+    AUDIO_DICT['TileShift'].play()
     display_state(state)
 
     tile_clicked = None
@@ -337,6 +351,7 @@ def human_turn(state:State):
     for p in state.players:
         if not p.isAI:
             p.row,p.col = tile_clicked[0],tile_clicked[1]
+    AUDIO_DICT['PlayerMove'].play()
     state = State(state.players,state.treasures,state.board,state.side_tile,state.forbidden_shift)
     Human_Turn = False
     display_state(state)

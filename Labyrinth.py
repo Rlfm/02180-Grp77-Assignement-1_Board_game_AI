@@ -77,6 +77,8 @@ def main():
 			if not current_state.isHuman_at_goal():
 				print('Initiated Minimax')
 				best_value,best_moves = alpha_beta_pruning_test(current_state)
+				game.AUDIO_DICT['AIready'].play()
+				time.sleep(1)
 				print('best_value= ',best_value)
 				print('actions:')
 				for a in best_moves:
@@ -85,7 +87,13 @@ def main():
 				#state_seq = AI_random_turn(current_state)
 				game.display_state_sequence(state_seq)
 				current_state =state_seq[-1]
-		print('GAME FINISHED')
+		if current_state.isHuman_at_goal():
+			print('HUMAN WON')
+			game.AUDIO_DICT['HumanWon'].play()
+		else:
+			print('AI WON')
+			game.AUDIO_DICT['HumanLost'].play()
+		time.sleep(4)
 
 
 
@@ -142,7 +150,6 @@ def main():
 			board[0][e] = copy.deepcopy(T_4)
 		return board
 
-	#CurrentTiles = random_board(5)
 
 	Treasure_P1 = Treasure(1,3,0) 
 	Treasure_P2 = Treasure(4,0,1)
@@ -154,7 +161,17 @@ def main():
 	#CurrentState = State(Player_1,Player_2,Treasure_P1,Treasure_P2,CurrentTiles,side_tile)
 	CurrentState = State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile,TileShiftAction(None,False,3,1))
 
-	#run_game(CurrentState)
+	RunGame=True
+	if RunGame:
+		CurrentTiles = random_board(5)
+		Treasure_P1 = Treasure(4,4,0) 
+		Treasure_P2 = Treasure(4,0,1)
+		AI = Player(0,4,Treasure_P2,True)
+		Human = Player(0,0,Treasure_P1,False)
+		
+		CurrentState= State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile,TileShiftAction(None,False,3,1))
+
+		run_game(CurrentState)
 	CurrentState.display()
 	Solution = bfs_search(CurrentState,True)
 	children = children_after_turn(CurrentState,True)
