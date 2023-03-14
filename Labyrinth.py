@@ -69,14 +69,14 @@ def main():
 	def run_game(start_state):
 		global Keep
 		import Interface as game
-		game.init_game(start_state.size[0],start_state.size[1])
+		game.init_game(7,7)
 		playing = True
 		while playing:
 
-			CurrentTiles = random_board(5)
-			Treasure_P1 = Treasure(4,4,0) 
-			Treasure_P2 = Treasure(4,0,1)
-			AI = Player(0,4,Treasure_P2,True)
+			CurrentTiles = random_board(7)
+			Treasure_P1 = Treasure(6,6,0) 
+			Treasure_P2 = Treasure(6,0,1)
+			AI = Player(0,6,Treasure_P2,True)
 			Human = Player(0,0,Treasure_P1,False)
 			start_state= State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile,TileShiftAction(None,False,3,1))
 
