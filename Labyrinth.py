@@ -241,25 +241,35 @@ def main():
 				Minimax_return[TileShiftX] = "???"
 				plus1_states.append((results(CurrentState,TileShiftX),0,-10**99,10**99,False,CurrentState.Human_Treasure))
 
-			with Pool() as pool:
-				resultss = pool.starmap(minimax,plus1_states)
+	plus1_states = list()
+	for TileShiftX in actions(CurrentState,TileShiftAction,isAI=True):
+		Minimax_return[TileShiftX] = "???"
+		plus1_states.append((results(CurrentState,TileShiftX),1,-10**99,10**99,True,CurrentState.Human_Treasure))
 
-			for i,value in enumerate(resultss):
-				key = list(Minimax_return.keys())[i]
-				Minimax_return[key] = value
+	with Pool() as pool:
+		resultss = pool.starmap(minimax,plus1_states)
 
-			for TileShiftX,value in Minimax_return.items():
-				print(f"{str(TileShiftX)} -> {value}")
+	for i,value in enumerate(resultss):
+		key = list(Minimax_return.keys())[i]
+		Minimax_return[key] = value
 
-			stop1 = time.perf_counter()
-			print(f"Multiprocessing Time elapsed {round(stop1-start1)}s ")
+	for TileShiftX,value in Minimax_return.items():
+		print(f"{str(TileShiftX)} -> {value}")
 
-			print("PAUSED TO CHILL CPU")
-			time.sleep(20)
+	stop1 = time.perf_counter()
+	print(f"Multiprocessing Time elapsed {round(stop1-start1)}s ")
+
+	stop1 = time.perf_counter()
+	print(f"Multiprocessing Time elapsed {round(stop1-start1)}s ")
+	
+
+	print("PAUSED TO CHILL CPU")
+	time.sleep(20)
+	print("NOW WITHOUT MULTIPROCESSING")
 	start2 = time.perf_counter()
 	for TileShiftX in actions(CurrentState,TileShiftAction,isAI=True):
 		new_state = results(CurrentState,TileShiftX)
-		Minimax_return[TileShiftX] = minimax(new_state,0,-10**99,10**99,False,CurrentState.Human_Treasure)
+		Minimax_return[TileShiftX] = minimax(new_state,1,-10**99,10**99,True,CurrentState.Human_Treasure)
 	
 	for TileShiftX,value in Minimax_return.items():
 		print(f"{str(TileShiftX)} -> {value}")

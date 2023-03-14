@@ -10,12 +10,14 @@ logging.basicConfig(level =level, format=fmt)
 
 
 def bfs_search(state:State,isAI,Target_treasure=None):
+    
     start_state=copy.deepcopy(state)
     if Target_treasure is not None:
         for p in start_state.players:
             if not p.isAI:
                 p.goal = Treasure(Target_treasure[0],Target_treasure[1],1)
         start_state = State(start_state.players,start_state.treasures,start_state.board,start_state.side_tile,start_state.forbidden_shift)
+   
     # Keep track of visited nodes and the path to each node
     expandedNodes = set()
 
@@ -156,9 +158,6 @@ def A_star(start_state:State):
     return shifts[list(sorted_by_H.keys())[0]]
 
 
-
-
-
 """
 #TILE SHIFT TESTING
 shift = TileShiftAction(side_tile,True,3,-1)
@@ -169,84 +168,62 @@ for a in tile_shifts:
 	print(a)
 """
 
-TURN_LIMIT = 2
-Pruning = True
+TURN_LIMIT = 5
 
 def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes = list()):
     global TURN_LIMIT
-    global Pruning
     state.Human_Treasure = Target_Treasure
-
-    Solution = bfs_search(state,isAI,state.Human_Treasure)
-
-    if Solution[0] != None:
-        try:
-            if isAI:
-                logging.debug(f"SOLUTION FOR IA FOUND -> {turn}, H={1/turn}")
-                return 1/turn
-            else:
-                logging.debug(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1/turn}")
-                return -1/turn
-        except ZeroDivisionError:
-            if isAI:
-                logging.debug(f"SOLUTION FOR IA FOUND -> {turn}, H={1}")
-                return 1
-            else:
-                logging.debug(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1}")
-                return -1
     
-    elif turn >= TURN_LIMIT:
+    if turn >= TURN_LIMIT:
 
             try:                    
-                eval=  1/(ManhattanDistance(state.AI_Pos,state.AI_Treasure)*turn) -  1/(ManhattanDistance(state.Human_Pos,Target_Treasure)* turn)
+                eval=  1/(ManhattanDistance(state.AI_Pos,state.AI_Treasure)*turn) - 1/(ManhattanDistance(state.Human_Pos,Target_Treasure)* turn)
             except ZeroDivisionError: # In case tile out of the board 
                 eval = evaluate(state)
 
             #print(f"{state.Human_Pos=} VS {state.Human_Treasure=}, {state.AI_Pos=} VS {state.AI_Treasure=} -> {eval=}")
             return eval 
 
-    
-    else:
-        if isAI and None not in state.AI_Treasure:
-            Manhanthan_distances = dict.fromkeys(Solution[1])
-            for state in Solution[1]:
-                Manhanthan_distances[state]= ManhattanDistance(state.AI_Pos,state.AI_Treasure)
-
-            Manhanthan_distances = dict(sorted(Manhanthan_distances.items(), key=lambda item: item[1]))	
-            minAI = min(Manhanthan_distances.values())
-            state = list(Manhanthan_distances.keys())[0]
-            ExpandedNodes.append(state)
-            #print(f"{hash(state)} -> {minAI=}")
-        
-        elif None not in state.Human_Treasure:
-          
-            Manhanthan_distances = dict.fromkeys(Solution[1])
-            for i,state in enumerate(Solution[1]):
-                Manhanthan_distances[state]= ManhattanDistance(state.Human_Pos,state.Human_Treasure)
-            
-            Manhanthan_distances = dict(sorted(Manhanthan_distances.items(), key=lambda item: item[1]))	
-            minHum = min(Manhanthan_distances.values())
-            state = list(Manhanthan_distances.keys())[0]
-            ExpandedNodes.append(state)
-            #print(f"{hash(state)} -> {minHum=}")
-
     if len(ExpandedNodes)%1000 <= 1:
-        logging.debug(len(ExpandedNodes),'nodes generated')
+        print(len(ExpandedNodes),'nodes generated')
+    
     if isAI:
         maxEval = -10**99
 
         for child in state.children_tileshift(isAI)[0]:
-            if child.inList(ExpandedNodes):
-                return maxEval
+            if child.inList(ExpandedNodes): # Only True with side_tile = Straight1 or 2
+                return None
             else:
                 ExpandedNodes.append(child)
             
-            eval = minimax(child,turn+1, alpha, beta, False,state.Human_Treasure)
-            if eval == None:pass
-            maxEval = max(maxEval, eval)
-            alpha = max(alpha, eval)
-            if beta <= alpha and Pruning:
-                break
+            Solution = bfs_search(child,isAI,state.Human_Treasure)
+
+            if Solution[0] != None:
+                try:
+                    #print(f"SOLUTION FOR AI FOUND -> {turn}, H={1/turn}")
+                    return 1/turn
+                except ZeroDivisionError:
+                    #print(f"SOLUTION FOR AI FOUND -> {turn}, H={1}")
+                    return 1
+            else:
+                if None not in state.AI_Treasure: # Only moves closer to treasure if Treasure on the board, else doesn't move
+                    Manhanthan_distances = dict.fromkeys(Solution[1])
+                    for state in Solution[1]:
+                        Manhanthan_distances[state]= ManhattanDistance(state.AI_Pos,state.AI_Treasure)
+
+                    Manhanthan_distances = dict(sorted(Manhanthan_distances.items(), key=lambda item: item[1]))	
+                    minAI = min(Manhanthan_distances.values())
+                    assert minAI == list(Manhanthan_distances.values())[0]
+                    child = list(Manhanthan_distances.keys())[0]
+                    ExpandedNodes.append(child)
+                    #print(f"{hash(state)} -> {minAI=}")
+
+                eval = minimax(child,turn+1, alpha, beta, False,child.Human_Treasure)
+                if eval == None:continue #already explored node or not evaluable
+                maxEval = max(maxEval, eval)
+                alpha = max(alpha, eval)
+                if beta <= alpha :
+                    break
         
         return maxEval
  
@@ -254,17 +231,41 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
         minEval = 10**99
 
         for child in state.children_tileshift(isAI)[0]:
-            if child.inList(ExpandedNodes):
-                return minEval
+            if child.inList(ExpandedNodes): # Only True with side_tile = Straight1 or 2
+                return None
             else:
                 ExpandedNodes.append(child)
 
-            eval = minimax(child,turn+1, alpha, beta, True,state.Human_Treasure)
-            if eval == None:continue
-            minEval = min(minEval, eval)
-            beta = min(beta, eval)
-            if beta <= alpha and Pruning:
-                break
+            Solution = bfs_search(child,isAI,state.Human_Treasure)
+
+            if Solution[0] != None:
+                try:
+                    print(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1/turn}")
+                    return -1/turn
+                except ZeroDivisionError:
+                    print(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1}")
+                    return -1
+
+            else:
+                if None not in state.Human_Treasure: # Only moves closer to treasure if Treasure on the board, else doesn't move
+                    Manhanthan_distances = dict.fromkeys(Solution[1])
+                    for state in Solution[1]:
+                        Manhanthan_distances[state]= ManhattanDistance(state.Human_Pos,state.Human_Treasure)
+                    
+                    Manhanthan_distances = dict(sorted(Manhanthan_distances.items(), key=lambda item: item[1]))	
+                    minHum = min(Manhanthan_distances.values())
+                    assert minHum == list(Manhanthan_distances.values())[0]
+                    child = list(Manhanthan_distances.keys())[0]
+                    ExpandedNodes.append(child)
+                    #print(f"{hash(state)} -> {minHum=}")
+
+                eval = minimax(child,turn+1, alpha, beta,True,child.Human_Treasure)
+                if eval == None:continue #already explored node or not evaluable
+                minEval = min(minEval, eval)
+                beta = min(beta, eval)
+                if beta <= alpha:
+                    break
+        
         return minEval
  
  
