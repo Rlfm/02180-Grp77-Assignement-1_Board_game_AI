@@ -7,7 +7,6 @@ from termcolor import colored
 import copy
 import time
 from multiprocessing import Pool
-
 import logging  
 level = logging.DEBUG	
 fmt = '[%(levelname)s] %(asctime)s - %(message)s'
@@ -56,6 +55,30 @@ def main():
 			state_seq = state_seq + bfs[1][random_state]
 		print(state_seq)
 		return state_seq
+	
+	def AI_turn(state):
+		# Returns a list of states corresponding to what the AI would do with the given state
+		print('Initiated decision algorithm')
+
+		# Select the right tile shift action
+		start_time = time.perf_counter()
+		TileShiftX,value = minimax(state,1,-10**99,10**99,True,state.Human_Treasure)
+
+		print(f"Current state minimax = {value}, {TileShiftX}")
+		print(f"Time elapsed {round(time.perf_counter()-start_time)}s ")
+
+		result_state = results(state,TileShiftX)
+
+		# Select the right pawn movement
+		
+		# try to find a solution
+		sol,path,_ = bfs_search(result_state,True,result_state.Human_Treasure)
+		
+		# if no solution, just move the pawn closer to the goal
+		if sol == None:
+			sol = find_closest_to_goal(path)
+
+		return sol
 
 	def run_game(start_state):
 		import Interface as game
@@ -71,35 +94,28 @@ def main():
 			start_state= State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile,TileShiftAction(None,False,3,1))
 
 			game.display_state(start_state)
-			clock = game.pygame.time.Clock()
 			current_state = start_state
-			Keep =False
-			def keep_alive():
-				global Keep
-				while Keep:
-					game.pygame.event.pump()
-					clock.tick(30)
-			thread = threading.Thread(target=keep_alive, args=())
-			thread.start()
 
 			while not(current_state.isAI_at_goal() or current_state.isHuman_at_goal()):
 				if not current_state.isAI_at_goal():
 					current_state = game.human_turn(current_state)
 				time.sleep(2)
 				if not current_state.isHuman_at_goal():
-					print('Initiated Minimax')
-					Keep=True
+					'''
 					timer = time.perf_counter()
+					print('Initiated Minimax')
 					best_value,best_moves=alpha_beta_pruning_test(current_state,depth=1, alpha=float('-inf'), beta=float('inf'), expandedNodes=[])
 					print('search time =', time.perf_counter()-timer)
-					Keep=False
-					game.AUDIO_DICT['AIready'].play()
-					time.sleep(1)
+					
 					print('best_value= ',best_value)
 					print('actions:')
 					for a in best_moves:
 						print(a)
-					state_seq = actions_to_states(current_state,best_moves)
+					'''
+					state_seq = AI_turn(current_state)
+					game.AUDIO_DICT['AIready'].play()
+					time.sleep(1)
+
 					#state_seq = AI_random_turn(current_state)
 					game.display_state_sequence(state_seq)
 					current_state =state_seq[-1]
@@ -132,23 +148,36 @@ def main():
 			[copy.deepcopy(Straight2),copy.deepcopy(Straight1),copy.deepcopy(Straight2),copy.deepcopy(Straight1),copy.deepcopy(Straight2)],]
 
 
-	def random_board():
-		StraightTiles = [random.choice([Straight1,Straight2]) for _ in range(round(NB_COL_ROW**2*0.5))]
-		CornerTiles = [random.choice([Corner1,Corner2,Corner3,Corner4]) for _ in range(round((NB_COL_ROW**2)*0.3))]
-		T_Tiles = [random.choice([T_1,T_2,T_3,T_4]) for _ in range(round((NB_COL_ROW**2)*0.2))]
+
+	def random_board(size):
+
+		StraightTiles = [random.choice([Straight1,Straight2]) for _ in range(round(size**2*0.5))]
+		CornerTiles = [random.choice([Corner1,Corner2,Corner3,Corner4]) for _ in range(round((size**2)*0.3))]
+		T_Tiles = [random.choice([T_1,T_2,T_3,T_4]) for _ in range(round((size**2)*0.2))]
 
 		TilesProportion = StraightTiles + CornerTiles +  T_Tiles
-		for n in range(NB_COL_ROW**2 - len(TilesProportion)):
+		for n in range(size**2 - len(TilesProportion)):
 			TilesProportion.append(random.choice(Tiles))
 	
 		board = list()
-		for _ in range(NB_COL_ROW):
+		for _ in range(size):
 			row = list()
-			for n in range(NB_COL_ROW):
+			for n in range(size):
 				tile = random.choice(TilesProportion)
 				row.append(copy.deepcopy(tile))
 				TilesProportion.remove(tile)
 			board.append(row)
+
+		board[0][0] = copy.deepcopy(Corner1)
+		board[-1][0] = copy.deepcopy(Corner2)
+		board[-1][-1]= copy.deepcopy(Corner3)
+		board[0][-1] = copy.deepcopy(Corner4)
+		evens = [num for num in range(size) if num % 2 == 0 and num>0 and num<size-1]
+		for e in evens:
+			board[e][0] = copy.deepcopy(T_1)
+			board[-1][e] = copy.deepcopy(T_2)
+			board[e][-1] = copy.deepcopy(T_3)
+			board[0][e] = copy.deepcopy(T_4)
 
 		return board
 
@@ -165,7 +194,7 @@ def main():
 	CurrentState = State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile,TileShiftAction(None,False,3,1))
 	CurrentState.display()
 
-	#run_game(CurrentState)
+	run_game(CurrentState)
 	"""
 	Solution = bfs_search(CurrentState,True)
 	children = children_after_turn(CurrentState,True)

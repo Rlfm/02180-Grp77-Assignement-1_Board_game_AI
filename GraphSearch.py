@@ -53,6 +53,16 @@ def bfs_search(state:State,isAI,Target_treasure=None):
 
     return (None,path,action_path)
 
+def find_closest_to_goal(path):
+    # returns a list of states that guide to the state which is closest to the AI goal
+    state_list = list(path.keys())
+    distances = [0]*len(state_list)
+    for i in range(len(distances)):
+        distances[i] = ManhattanDistance(state_list[i].AI_Pos, state_list[i].AI_Treasure)
+    index_min = min(range(len(distances)), key=distances.__getitem__)
+    return path[state_list[index_min]]
+
+
 def bfs_search_no_goal(start_state,isAI):
     # BFS function to return all approachable states for a given player
 
