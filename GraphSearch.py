@@ -158,6 +158,9 @@ def A_star(start_state:State):
     return shifts[list(sorted_by_H.keys())[0]]
 
 
+
+
+
 """
 #TILE SHIFT TESTING
 shift = TileShiftAction(side_tile,True,3,-1)
@@ -168,9 +171,9 @@ for a in tile_shifts:
 	print(a)
 """
 
-TURN_LIMIT = 5
+TURN_LIMIT = 3
 
-def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes = list()):
+def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes = list(),Basic_TileShift=None):
     global TURN_LIMIT
     state.Human_Treasure = Target_Treasure
     
@@ -182,17 +185,19 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
                 eval = evaluate(state)
 
             #print(f"{state.Human_Pos=} VS {state.Human_Treasure=}, {state.AI_Pos=} VS {state.AI_Treasure=} -> {eval=}")
-            return eval 
+            print(f"return value for eval: {eval}")
+            return Basic_TileShift,eval 
 
     if len(ExpandedNodes)%1000 <= 1:
         print(len(ExpandedNodes),'nodes generated')
     
     if isAI:
         maxEval = -10**99
-
-        for child in state.children_tileshift(isAI)[0]:
+        
+        _states,_TileShifts = state.children_tileshift(isAI)
+        for child,this_tileShift in zip(_states,_TileShifts):
             if child.inList(ExpandedNodes): # Only True with side_tile = Straight1 or 2
-                return None
+                continue
             else:
                 ExpandedNodes.append(child)
             
@@ -201,10 +206,12 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
             if Solution[0] != None:
                 try:
                     #print(f"SOLUTION FOR AI FOUND -> {turn}, H={1/turn}")
-                    return 1/turn
+                    print(f"return value for AI win: {1/turn}")
+                    return this_tileShift,1/turn
                 except ZeroDivisionError:
                     #print(f"SOLUTION FOR AI FOUND -> {turn}, H={1}")
-                    return 1
+                    print(f"return value for AI win: {1}")
+                    return this_tileShift,1
             else:
                 if None not in state.AI_Treasure: # Only moves closer to treasure if Treasure on the board, else doesn't move
                     Manhanthan_distances = dict.fromkeys(Solution[1])
@@ -218,21 +225,25 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
                     ExpandedNodes.append(child)
                     #print(f"{hash(state)} -> {minAI=}")
 
-                eval = minimax(child,turn+1, alpha, beta, False,child.Human_Treasure)
-                if eval == None:continue #already explored node or not evaluable
+                return_value = minimax(child,turn+1, alpha, beta, False,child.Human_Treasure,ExpandedNodes,this_tileShift)
+                eval = return_value[1]
                 maxEval = max(maxEval, eval)
+                if eval == maxEval:
+                    Basic_TileShift = this_tileShift
                 alpha = max(alpha, eval)
                 if beta <= alpha :
                     break
         
-        return maxEval
+        print(f"return value for maxEval: {maxEval}")
+        return Basic_TileShift,maxEval
  
     else:
         minEval = 10**99
-
-        for child in state.children_tileshift(isAI)[0]:
+        
+        _states,_TileShifts = state.children_tileshift(isAI)
+        for child,this_tileShift in zip(_states,_TileShifts):
             if child.inList(ExpandedNodes): # Only True with side_tile = Straight1 or 2
-                return None
+                continue            
             else:
                 ExpandedNodes.append(child)
 
@@ -240,11 +251,13 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
 
             if Solution[0] != None:
                 try:
-                    print(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1/turn}")
-                    return -1/turn
+                    #print(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1/turn}")
+                    print(f"return value for Human win: {-1/turn}")
+                    return this_tileShift,-1/turn
                 except ZeroDivisionError:
-                    print(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1}")
-                    return -1
+                    #print(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1}")
+                    print(f"return value for Human win: {-1}")
+                    return this_tileShift,-1
 
             else:
                 if None not in state.Human_Treasure: # Only moves closer to treasure if Treasure on the board, else doesn't move
@@ -259,14 +272,18 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
                     ExpandedNodes.append(child)
                     #print(f"{hash(state)} -> {minHum=}")
 
-                eval = minimax(child,turn+1, alpha, beta,True,child.Human_Treasure)
+                return_value = minimax(child,turn+1, alpha, beta,True,child.Human_Treasure,ExpandedNodes,this_tileShift)
+                eval = return_value[1]
                 if eval == None:continue #already explored node or not evaluable
                 minEval = min(minEval, eval)
+                if eval == minEval:
+                    Basic_TileShift = this_tileShift
                 beta = min(beta, eval)
                 if beta <= alpha:
                     break
         
-        return minEval
+        print(f"return value for minEval: {minEval}")
+        return Basic_TileShift,minEval
  
  
 def evaluate(state:State):

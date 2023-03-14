@@ -7,7 +7,6 @@ from termcolor import colored
 import copy
 import time
 from multiprocessing import Pool
-import threading
 
 import logging  
 level = logging.DEBUG	
@@ -57,17 +56,8 @@ def main():
 			state_seq = state_seq + bfs[1][random_state]
 		print(state_seq)
 		return state_seq
-	
-	def actions_to_states(state:State,actions_list):
-		states = []
-		new_state=copy.deepcopy(state)
-		for a in actions_list:
-			new_state = results(new_state,a)
-			states.append(new_state)
-		return states
-	
+
 	def run_game(start_state):
-		global Keep
 		import Interface as game
 		game.init_game(7,7)
 		playing = True
@@ -122,11 +112,6 @@ def main():
 			game.game_ended()
 			
 
-
-
-
-
-
 	#-------------------------- Board generation ---------------------
 	#Tiles = {0:Corner1,1:Corner2,2:Corner3,3:Corner4,4:T_1,5:T_2,6:T_3,7:T_4,8:Straight1,9:Straight2}
 	Board = [[] for _ in range(NB_COL_ROW)]
@@ -140,44 +125,34 @@ def main():
 
 	##BFS TESTING
 
-	CurrentTiles = [[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight2),copy.deepcopy(Straight1),copy.deepcopy(Straight2)],
+	CurrentTiles = [[copy.deepcopy(Straight2),copy.deepcopy(Straight1),copy.deepcopy(Straight2),copy.deepcopy(Straight1),copy.deepcopy(Straight2)],
 			[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight2),copy.deepcopy(Straight1)],
-			[copy.deepcopy(Straight1),copy.deepcopy(Straight2),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
-			[copy.deepcopy(Corner4),copy.deepcopy(Corner4),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
-			[copy.deepcopy(Straight2),copy.deepcopy(Corner3),copy.deepcopy(Straight2),copy.deepcopy(Straight1),copy.deepcopy(Straight2)],]
+			[copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
+			[copy.deepcopy(Corner4),copy.deepcopy(Corner3),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1)],
+			[copy.deepcopy(Straight2),copy.deepcopy(Straight1),copy.deepcopy(Straight2),copy.deepcopy(Straight1),copy.deepcopy(Straight2)],]
 
 
-	def random_board(size):
-		
-		StraightTiles = [random.choice([Straight1,Straight2]) for _ in range(round(size**2*0.5))]
-		CornerTiles = [random.choice([Corner1,Corner2,Corner3,Corner4]) for _ in range(round((size**2)*0.3))]
-		T_Tiles = [random.choice([T_1,T_2,T_3,T_4]) for _ in range(round((size**2)*0.2))]
+	def random_board():
+		StraightTiles = [random.choice([Straight1,Straight2]) for _ in range(round(NB_COL_ROW**2*0.5))]
+		CornerTiles = [random.choice([Corner1,Corner2,Corner3,Corner4]) for _ in range(round((NB_COL_ROW**2)*0.3))]
+		T_Tiles = [random.choice([T_1,T_2,T_3,T_4]) for _ in range(round((NB_COL_ROW**2)*0.2))]
 
 		TilesProportion = StraightTiles + CornerTiles +  T_Tiles
-		for n in range(size**2 - len(TilesProportion)):
+		for n in range(NB_COL_ROW**2 - len(TilesProportion)):
 			TilesProportion.append(random.choice(Tiles))
 	
 		board = list()
-		for _ in range(size):
+		for _ in range(NB_COL_ROW):
 			row = list()
-			for n in range(size):
+			for n in range(NB_COL_ROW):
 				tile = random.choice(TilesProportion)
 				row.append(copy.deepcopy(tile))
 				TilesProportion.remove(tile)
 			board.append(row)
 
-		board[0][0] = copy.deepcopy(Corner1)
-		board[-1][0] = copy.deepcopy(Corner2)
-		board[-1][-1]= copy.deepcopy(Corner3)
-		board[0][-1] = copy.deepcopy(Corner4)
-		evens = [num for num in range(size) if num % 2 == 0 and num>0 and num<size-1]
-		for e in evens:
-			board[e][0] = copy.deepcopy(T_1)
-			board[-1][e] = copy.deepcopy(T_2)
-			board[e][-1] = copy.deepcopy(T_3)
-			board[0][e] = copy.deepcopy(T_4)
 		return board
 
+	#CurrentTiles = random_board()
 
 	Treasure_P1 = Treasure(1,3,0) 
 	Treasure_P2 = Treasure(4,0,1)
@@ -185,39 +160,28 @@ def main():
 	AI = Player(0,0,Treasure_P2,True)
 	Human = Player(3,4,Treasure_P1,False)
 
-	side_tile =Tile(1,1,0,1) #This type of tile shouldn't exist; just for testing purposes
+	side_tile =Tile(1,1,0,0) 
 	#CurrentState = State(Player_1,Player_2,Treasure_P1,Treasure_P2,CurrentTiles,side_tile)
 	CurrentState = State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile,TileShiftAction(None,False,3,1))
-
-	RunGame=True
-	if RunGame:
-		CurrentTiles = random_board(5)
-		Treasure_P1 = Treasure(4,4,0) 
-		Treasure_P2 = Treasure(4,0,1)
-		AI = Player(0,4,Treasure_P2,True)
-		Human = Player(0,0,Treasure_P1,False)
-		
-		CurrentState= State([AI,Human],[Treasure_P1,Treasure_P2],CurrentTiles,side_tile,TileShiftAction(None,False,3,1))
-
-		run_game(CurrentState)
 	CurrentState.display()
+
+	#run_game(CurrentState)
+	"""
 	Solution = bfs_search(CurrentState,True)
 	children = children_after_turn(CurrentState,True)
 	print(len(children))
 
 	if True:
-		timer = time.perf_counter()
 		alpha_beta = alpha_beta_pruning_test(CurrentState,2,float('-inf'),float('inf'))
 		print(alpha_beta[0])
 		for a in alpha_beta[1]:
 			print(a)
-		print(time.perf_counter()-timer,'seconds')
-	
+	"""
 	def animate_states(states):
 		for state in states:
 			print("\033c", end="")
 			state.display()
-			time.sleep(0.2)
+			time.sleep(0.3)
 		
 	"""
 	if Solution[0] is not None:
@@ -231,53 +195,37 @@ def main():
 	Applicable_TileShifs= list(dict.fromkeys(actions(CurrentState,TileShiftAction,isAI=True))) #Avoid repetition with Straight only 2 rotation VS 4 for others
 	TileShifts_groups = dict.fromkeys([TS.new_tile for TS in Applicable_TileShifs],[])
 	"""
-	Multiprocessing = True
-	if Multiprocessing:
-			start1 = time.perf_counter()
-			Minimax_return = dict()
 
-			plus1_states = list()
-			for TileShiftX in actions(CurrentState,TileShiftAction,isAI=True):
-				Minimax_return[TileShiftX] = "???"
-				plus1_states.append((results(CurrentState,TileShiftX),0,-10**99,10**99,False,CurrentState.Human_Treasure))
+	"""
+	start1 = time.perf_counter()
+	Minimax_return = dict()
 
 	plus1_states = list()
 	for TileShiftX in actions(CurrentState,TileShiftAction,isAI=True):
 		Minimax_return[TileShiftX] = "???"
 		plus1_states.append((results(CurrentState,TileShiftX),1,-10**99,10**99,True,CurrentState.Human_Treasure))
-
 	with Pool() as pool:
-		resultss = pool.starmap(minimax,plus1_states)
+		Pool_results = pool.starmap(minimax,plus1_states)
 
-	for i,value in enumerate(resultss):
+	for i,value in enumerate(Pool_results):
 		key = list(Minimax_return.keys())[i]
 		Minimax_return[key] = value
-
 	for TileShiftX,value in Minimax_return.items():
 		print(f"{str(TileShiftX)} -> {value}")
+	"""
+	start1 = time.perf_counter()
+
+	TileShiftX,value = minimax(CurrentState,1,-10**99,10**99,True,CurrentState.Human_Treasure)
+	print(f"Current state minimax = {value}, {TileShiftX}")
 
 	stop1 = time.perf_counter()
-	print(f"Multiprocessing Time elapsed {round(stop1-start1)}s ")
-
-	stop1 = time.perf_counter()
-	print(f"Multiprocessing Time elapsed {round(stop1-start1)}s ")
+	print(f"Time elapsed {round(stop1-start1)}s ")
 	
+	result_from_shift = results(CurrentState,TileShiftX)
+	Solution = bfs_search(result_from_shift,True,result_from_shift.Human_Treasure)
 
-	print("PAUSED TO CHILL CPU")
-	time.sleep(20)
-	print("NOW WITHOUT MULTIPROCESSING")
-	start2 = time.perf_counter()
-	for TileShiftX in actions(CurrentState,TileShiftAction,isAI=True):
-		new_state = results(CurrentState,TileShiftX)
-		Minimax_return[TileShiftX] = minimax(new_state,1,-10**99,10**99,True,CurrentState.Human_Treasure)
-	
-	for TileShiftX,value in Minimax_return.items():
-		print(f"{str(TileShiftX)} -> {value}")
-
-	stop2 = time.perf_counter()
-	print(f"1 thread Time elapsed {round(stop2-start2)}s ")	
-
-	print(f"{round(stop2-start2)-round(stop1-start1)}s by Multiprocessing")
+	states_to_anim = [CurrentState,result_from_shift] + Solution[0]
+	animate_states(states_to_anim)
 
 	"""
 	#TILE SHIFT TESTING
