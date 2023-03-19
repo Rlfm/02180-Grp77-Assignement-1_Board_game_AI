@@ -82,6 +82,7 @@ def main():
 
 			while not(current_state.isAI_at_goal() or current_state.isHuman_at_goal()):
 				if not current_state.isAI_at_goal():
+					print("Waiting for human's moves.")
 					current_state = game.human_turn(current_state)
 				time.sleep(2)
 				if not current_state.isHuman_at_goal():
@@ -90,7 +91,6 @@ def main():
 					game.pygame.event.pump()
 					time.sleep(1)
 
-					#state_seq = AI_random_turn(current_state)
 					game.display_state_sequence(state_seq)
 					current_state =state_seq[-1]
 			if current_state.isHuman_at_goal():
