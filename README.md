@@ -6,7 +6,11 @@ Repository for group 77 work on Assignement 1 "BOARD GAME ASSIGNMENT" of the cla
   
 **How to run the game**
 
-In the installation folder with all the python files, simply run:
+Make sure all relevant dependencies are correctly installed: 
+ - numpy
+ - pygame
+
+Then, simply run the following command in the installation folder with all the four python files:
 
 python Labyrinth.py
 

@@ -1,9 +1,10 @@
-from termcolor import colored
 import copy
 import numpy as np
 from typing import Union
 from Entities import *
 import logging
+# termcolor is only needed for testing purposes
+#from termcolor import colored
 
 level = logging.INFO	
 fmt = '[%(levelname)s] %(asctime)s - %(message)s'
