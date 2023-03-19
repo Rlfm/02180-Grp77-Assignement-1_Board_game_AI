@@ -134,7 +134,7 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
 
             return Basic_TileShift,eval 
 
-    if len(ExpandedNodes)%1000 <= 10:
+    if len(ExpandedNodes)%100 <= 10:
         print(len(ExpandedNodes),'nodes generated')
     
     if isAI:

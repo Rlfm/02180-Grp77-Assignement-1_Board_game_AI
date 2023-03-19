@@ -37,7 +37,7 @@ def main():
 
 		# Select the right tile shift action
 		start_time = time.perf_counter()
-		TileShiftX,value = minimax(state,1,-10**99,10**99,True,state.Human_Treasure)
+		TileShiftX,value = minimax(state,1,-10**99,10**99,True,state.Human_Treasure,[])
 
 		print(f"Current state minimax = {value}, {TileShiftX}")
 		print(f"Time elapsed {round(time.perf_counter()-start_time)}s ")
