@@ -117,9 +117,9 @@ def main():
 			board[0][e] = copy.deepcopy(T_4)
 		empty_tiles-= 4 + 4*len(evens)
 		
-		StraightTiles = [random.choice([Straight1,Straight2]) for _ in range(round(empty_tiles*0.5))]
-		CornerTiles = [random.choice([Corner1,Corner2,Corner3,Corner4]) for _ in range(round(empty_tiles*0.3))]
-		T_Tiles = [random.choice([T_1,T_2,T_3,T_4]) for _ in range(round(empty_tiles*0.2))]
+		StraightTiles = [random.choice([Straight1,Straight2]) for _ in range(round(empty_tiles*12/37))]
+		CornerTiles = [random.choice([Corner1,Corner2,Corner3,Corner4]) for _ in range(round(empty_tiles*16/37))]
+		T_Tiles = [random.choice([T_1,T_2,T_3,T_4]) for _ in range(round(empty_tiles*9/37))]
 
 		TilesProportion = StraightTiles + CornerTiles +  T_Tiles
 		for n in range(empty_tiles - len(TilesProportion)):
