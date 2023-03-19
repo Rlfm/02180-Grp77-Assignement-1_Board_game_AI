@@ -2,7 +2,7 @@
 
 Repository for group 77 work on Assignement 1 "BOARD GAME ASSIGNMENT" of the class "02180 Introduction to AI, SP23".
   * Chosen board game: **The Labyrinth**
-  * Deadline: **20th March 2022 at 23:59**
+  * Deadline: **20th March 2023 at 23:59**
   
 **How to run the game**
 
