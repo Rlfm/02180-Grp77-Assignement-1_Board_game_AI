@@ -327,11 +327,13 @@ def display_state(state:State):
 def display_state_sequence(states:list[State]):
     display_state(states[0])
     AUDIO_DICT['TileShift'].play()
+    pygame.event.pump()
     time.sleep(1.5)
     for s in states[1:]:
+        pygame.event.pump()
         display_state(s)
         AUDIO_DICT['PlayerMove'].play()
-        time.sleep(0.7)
+        time.sleep(0.5)
 
 def handle_rot_click(event):
     global side_tile_rot
@@ -405,16 +407,20 @@ def human_turn(state:State):
     blitInstructions(1)
     pygame.display.update()
     tile_clicked = None
-    while tile_clicked is None:
-        for event in pygame.event.get():
-           tile_clicked = handle_tile_click(event)
-           handle_exit(event)
-    for p in state.players:
-        if not p.isAI:
-            p.row,p.col = tile_clicked[0],tile_clicked[1]
+    possible_states=list(bfs_search_no_goal(Displayed_State,False))
+    if len(possible_states)==1:
+        state=possible_states[0]
+    else:
+        while tile_clicked is None:
+            for event in pygame.event.get():
+                tile_clicked = handle_tile_click(event)
+                handle_exit(event)
+        for p in state.players:
+            if not p.isAI:
+                p.row,p.col = tile_clicked[0],tile_clicked[1]
+        AUDIO_DICT['PlayerMove'].play()
+        state = State(state.players,state.treasures,state.board,state.side_tile,state.forbidden_shift)
     WaitingMove=False
-    AUDIO_DICT['PlayerMove'].play()
-    state = State(state.players,state.treasures,state.board,state.side_tile,state.forbidden_shift)
     Human_Turn = False
     display_state(state)
     return state
@@ -464,17 +470,7 @@ def main():
             [copy.deepcopy(Straight1),copy.deepcopy(Corner3),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(T_3),copy.deepcopy(T_4)],
             [copy.deepcopy(Straight1),copy.deepcopy(Corner3),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(Straight1),copy.deepcopy(T_3),copy.deepcopy(T_4)]]
 
-    forbidden_shift = None
 
-    Treasure_P1 = Treasure(6,0,0)
-    Treasure_P2 = Treasure(3,1,1)
-    treasures = [Treasure_P1,Treasure_P2]
-
-    AI = Player(0,0,treasures[0],True)
-    Human = Player(1,1,treasures[1],False)
-
-    test_state = State([AI,Human],treasures,CurrentTiles,Tile(0,0,1,1),forbidden_shift)
-    Solution = bfs_search(test_state,True)
 
 
     # Update the display
@@ -494,4 +490,5 @@ def main():
         pygame.display.update()
 
 if __name__=="__main__":
+    print('YOU ARE NOT SUPPOSED TO RUN THIS FILE AS SCRIPT')
     main()

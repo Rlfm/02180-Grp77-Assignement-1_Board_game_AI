@@ -3,6 +3,7 @@ from Entities import *
 from States import *
 import logging 
 import copy
+import pygame
 
 level = logging.DEBUG	
 fmt = '[%(levelname)s] %(asctime)s - %(message)s'
@@ -117,76 +118,13 @@ def ManhattanDistance(Pos1,Pos2):
     return abs(row-goal_row) + abs(col-goal_col)
 
 
-def A_star(start_state:State):
-
-    start_state.size
-    """
-    row_shifts = [TileShiftAction(start_state.side_tile,True,n,1) for n in range(start_state.size[0]) if n%2 !=0] + [TileShiftAction(start_state.side_tile,True,n,-1) for n in range(start_state.size[0]) if n%2 !=0]
-    col_shifts = [TileShiftAction(start_state.side_tile,False,n,1) for n in range(start_state.size[0]) if n%2 !=0] + [TileShiftAction(start_state.side_tile,False,n,-1) for n in range(start_state.size[0]) if n%2 !=0]
-
-    print(f"{start_state.forbidden_shift=}")
-    shifts = [x for x in row_shifts + col_shifts if x != start_state.forbidden_shift]
-    """
-    shifts = actions(start_state,TileShiftAction,True)
-    heuristic_TileShift = {i:0 for i in range(len(shifts))}
-    for i,shift in enumerate(shifts):
-        Potential_state = results(start_state,shift)
-        
-        bfs_solution = bfs_search(Potential_state,True)
-        if bfs_solution[0] != None:
-            raise ValueError(f"first move at {i}")
-            return shift
-        else:
-            Manhanthan_distances = dict.fromkeys(bfs_solution[1])
-            for state in bfs_solution[1]:
-                Manhanthan_distances[state]= ManhattanDistance(state.AI_Pos,state.AI_Treasure)
-            
-            Manhanthan_distances = dict(sorted(Manhanthan_distances.items(), key=lambda item: item[1], reverse = True))	
-            minAI = min(Manhanthan_distances.values())
-
-        if bfs_solution[0] != None:
-            del heuristic_TileShift[i]
-            continue   
-
-        else: # Calculate Manhatan distance for P1 to all Treasures 
-            Manhanthan_distances = list()
-            for potential_treasure in [x for x in start_state.treasures if x != start_state.AI_Treasure]:
-                pos = (potential_treasure.row, potential_treasure.col)
-                for state in list(bfs_search(Potential_state,False)[1]):
-                    Manhanthan_distances.append(ManhattanDistance(state.Human_Pos,pos))
-            
-            minP1 = min(Manhanthan_distances)
-        
-        h = minAI-minP1
-        heuristic_TileShift[i] = h
-
-    sorted_by_H = dict(sorted(heuristic_TileShift.items(), key=lambda item: item[1], reverse = True))	
-    print(f"{sorted_by_H=}")
-    for i,elet in enumerate(shifts):
-        print(f"{i=} {elet} {elet.isRowShift=}")
-
-    return shifts[list(sorted_by_H.keys())[0]]
-
-
-
-
-
-"""
-#TILE SHIFT TESTING
-shift = TileShiftAction(side_tile,True,3,-1)
-print(shift)
-results(CurrentState,shift).display()
-tile_shifts = actions(CurrentState,TileShiftAction)
-for a in tile_shifts:
-	print(a)
-"""
 
 TURN_LIMIT = 3
 
 def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes = list(),Basic_TileShift=None):
     global TURN_LIMIT
     state.Human_Treasure = Target_Treasure
-    
+    pygame.event.pump() # Avoid freezing
     if turn >= TURN_LIMIT:
 
             try:                    
@@ -194,11 +132,9 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
             except ZeroDivisionError: # In case tile out of the board 
                 eval = evaluate(state)
 
-            #print(f"{state.Human_Pos=} VS {state.Human_Treasure=}, {state.AI_Pos=} VS {state.AI_Treasure=} -> {eval=}")
-            print(f"return value for eval: {eval}")
             return Basic_TileShift,eval 
 
-    if len(ExpandedNodes)%1000 <= 1:
+    if len(ExpandedNodes)%1000 <= 10:
         print(len(ExpandedNodes),'nodes generated')
     
     if isAI:
@@ -215,12 +151,9 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
 
             if Solution[0] != None:
                 try:
-                    #print(f"SOLUTION FOR AI FOUND -> {turn}, H={1/turn}")
-                    print(f"return value for AI win: {1/turn}")
                     return this_tileShift,1/turn
                 except ZeroDivisionError:
-                    #print(f"SOLUTION FOR AI FOUND -> {turn}, H={1}")
-                    print(f"return value for AI win: {1}")
+
                     return this_tileShift,1
             else:
                 if None not in state.AI_Treasure: # Only moves closer to treasure if Treasure on the board, else doesn't move
@@ -233,7 +166,6 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
                     assert minAI == list(Manhanthan_distances.values())[0]
                     child = list(Manhanthan_distances.keys())[0]
                     ExpandedNodes.append(child)
-                    #print(f"{hash(state)} -> {minAI=}")
 
                 return_value = minimax(child,turn+1, alpha, beta, False,child.Human_Treasure,ExpandedNodes,this_tileShift)
                 eval = return_value[1]
@@ -244,7 +176,6 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
                 if beta <= alpha :
                     break
         
-        print(f"return value for maxEval: {maxEval}")
         return Basic_TileShift,maxEval
  
     else:
@@ -261,12 +192,8 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
 
             if Solution[0] != None:
                 try:
-                    #print(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1/turn}")
-                    print(f"return value for Human win: {-1/turn}")
                     return this_tileShift,-1/turn
                 except ZeroDivisionError:
-                    #print(f"SOLUTION FOR HUMAN FOUND -> {turn}, H={-1}")
-                    print(f"return value for Human win: {-1}")
                     return this_tileShift,-1
 
             else:
@@ -280,7 +207,6 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
                     assert minHum == list(Manhanthan_distances.values())[0]
                     child = list(Manhanthan_distances.keys())[0]
                     ExpandedNodes.append(child)
-                    #print(f"{hash(state)} -> {minHum=}")
 
                 return_value = minimax(child,turn+1, alpha, beta,True,child.Human_Treasure,ExpandedNodes,this_tileShift)
                 eval = return_value[1]
@@ -292,7 +218,6 @@ def minimax(state:State,turn, alpha, beta, isAI, Target_Treasure, ExpandedNodes 
                 if beta <= alpha:
                     break
         
-        print(f"return value for minEval: {minEval}")
         return Basic_TileShift,minEval
  
  
@@ -302,41 +227,3 @@ def evaluate(state:State):
     if state.Human_Treasure[0] is None: score_Human = -1
     else: score_Human = 1/(1+ManhattanDistance(state.Human_Pos,state.Human_Treasure))
     return score_AI - score_Human
-
-
-def alpha_beta_pruning_test(node:State, depth=2, alpha=float('-inf'), beta=float('inf'), expandedNodes=[], isAI=True):
-    if depth == 0 or node.isAI_at_goal() or node.isHuman_at_goal():
-        eval = None
-        if node.isAI_at_goal(): eval = 1
-        elif node.isHuman_at_goal(): eval =-1
-        else: eval = evaluate(node)
-        return eval, None
-
-    best_value = float('-inf') if isAI else float('inf')
-    best_move = None
-    children_dict = children_after_turn(node,isAI)
-
-    if len(expandedNodes)%100<=10:
-        print(len(expandedNodes),'nodes generated')
-
-    for child,moves in children_dict.items():
-        
-        if child not in expandedNodes:
-            expandedNodes.append(child)
-            value, _ = alpha_beta_pruning_test(child, depth-1, alpha, beta, expandedNodes, not isAI)
-            
-            if value == 1:
-                best_value, best_move = value, moves
-                break
-
-            if isAI and value > best_value:
-                best_value, best_move = value, moves
-                alpha = max(alpha, best_value)
-            elif not isAI and value < best_value:
-                best_value, best_move = value, moves
-                beta  = min(beta, best_value)
-
-            if beta <= alpha:
-                break
-    
-    return best_value, best_move

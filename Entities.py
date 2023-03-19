@@ -61,10 +61,6 @@ def generate_treasures(board_size,n):
         treasures[i]=Treasure(row,col,i)
     return treasures
 
-treasures = generate_treasures(5,2)
-AI = Player(0,0,treasures[0],True)
-Human = Player(4,4,treasures[1],False)
-
 
 class MoveAction:
     def __init__(self, name:str, delta_row:int, delta_col:int,isAI:bool=True):

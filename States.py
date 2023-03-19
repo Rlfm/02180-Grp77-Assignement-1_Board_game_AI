@@ -3,7 +3,6 @@ import copy
 import numpy as np
 from typing import Union
 from Entities import *
-import random
 import logging
 
 level = logging.INFO	
@@ -116,7 +115,6 @@ class State:
         for t in self.treasures:
             pos.append([t.row,t.col])
         return pos
-    #TODO: Support None positions for treasures
     def display(self):
         Board = [[] for _ in range(self.size[0])]
         for i in range(self.size[0]):
@@ -333,19 +331,4 @@ def isApplicable(state:State,action:MoveAction):
         if not tile_Next.OpenE: return False
 
     return True
-
-
-Corner = Tile(0,1,1,0)
-T = Tile(1,1,1,0)
-Straight = Tile(1,0,1,0)
-
-TILES = Corner.rotationsList() + T.rotationsList() + [Straight, Straight.rotate(1)]
-
-
-def generate_board(rows,cols):
-    board = np.zeros(rows,cols)
-    for i in range(rows):
-        for j in range(cols):
-            board[i,j] = TILES[random.randint(0,len(TILES)-1)]
-    return board
 
