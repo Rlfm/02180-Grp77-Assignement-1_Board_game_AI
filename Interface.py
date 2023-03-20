@@ -3,6 +3,7 @@ from States import *
 import copy
 import time
 from GraphSearch import *
+import sys
 
 # Initialize Pygame
 pygame.init()
@@ -433,7 +434,6 @@ def game_ended():
             handle_exit(event)
             again = handle_again_click(event)
     
-
 def handle_exit(event):
     if event.type == pygame.QUIT:
         pygame.quit()
